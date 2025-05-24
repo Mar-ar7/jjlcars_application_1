@@ -6,9 +6,9 @@ import 'dart:async';
 
 class UsuarioService {
   // URL base para XAMPP incluyendo la carpeta api
-  static const String baseUrl = 'http://10.0.2.2/jjlcars/api';  // Para Android Emulator
-  // static const String baseUrl = 'http://localhost/jjlcars/api'; // Para web
-  // static const String baseUrl = 'http://127.0.0.1/jjlcars/api'; // Alternativa para local
+  static const String baseUrl = 'http://10.0.2.2/jjlcars_application_1/api';  // Para Android Emulator
+  // static const String baseUrl = 'http://localhost/jjlcars_application_1/api'; // Para web
+  // static const String baseUrl = 'http://127.0.0.1/jjlcars_application_1/api'; // Alternativa para local
 
   Future<List<Usuario>> obtenerUsuarios() async {
     try {
@@ -138,6 +138,114 @@ class UsuarioService {
         stackTrace: stackTrace,
       );
       throw Exception('Error de conexión: $e');
+    }
+  }
+
+  Future<Usuario> crearUsuario({
+    required String usuario,
+    required String nombre,
+    required String password,
+    required String tipoUsuario,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/crear_usuario.php'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: json.encode({
+          'Usuario': usuario,
+          'Nombre': nombre,
+          'Password': password,
+          'TipoUsuario': tipoUsuario,
+        }),
+      );
+
+      developer.log('Respuesta del servidor (crear): ${response.body}');
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (!data['success']) {
+          throw Exception(data['error'] ?? 'Error al crear usuario');
+        }
+        return Usuario.fromJson(data['usuario']);
+      } else {
+        throw Exception('Error al crear usuario: ${response.statusCode}');
+      }
+    } catch (e) {
+      developer.log('Error al crear usuario: $e');
+      rethrow;
+    }
+  }
+
+  Future<Usuario> actualizarUsuario({
+    required int id,
+    String? usuario,
+    String? nombre,
+    String? password,
+    String? tipoUsuario,
+  }) async {
+    try {
+      final Map<String, dynamic> datos = {
+        'id': id,
+      };
+
+      if (usuario != null) datos['Usuario'] = usuario;
+      if (nombre != null) datos['Nombre'] = nombre;
+      if (password != null) datos['Password'] = password;
+      if (tipoUsuario != null) datos['TipoUsuario'] = tipoUsuario;
+
+      final response = await http.post(
+        Uri.parse('$baseUrl/actualizar_usuario.php'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: json.encode(datos),
+      );
+
+      developer.log('Respuesta del servidor (actualizar): ${response.body}');
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (!data['success']) {
+          throw Exception(data['error'] ?? 'Error al actualizar usuario');
+        }
+        return Usuario.fromJson(data['usuario']);
+      } else {
+        throw Exception('Error al actualizar usuario: ${response.statusCode}');
+      }
+    } catch (e) {
+      developer.log('Error al actualizar usuario: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> eliminarUsuario(int id) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/eliminar_usuario.php'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: json.encode({'id': id}),
+      );
+
+      developer.log('Respuesta del servidor (eliminar): ${response.body}');
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (!data['success']) {
+          throw Exception(data['error'] ?? 'Error al eliminar usuario');
+        }
+      } else {
+        throw Exception('Error al eliminar usuario: ${response.statusCode}');
+      }
+    } catch (e) {
+      developer.log('Error al eliminar usuario: $e');
+      rethrow;
     }
   }
 } 
