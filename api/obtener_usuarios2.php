@@ -1,10 +1,8 @@
 <?php
 header('Access-Control-Allow-Origin: *');
 header('Content-Type: application/json; charset=UTF-8');
-
-// Habilitar todos los errores para depuración
-ini_set('display_errors', 1);
 error_reporting(E_ALL);
+ini_set('display_errors', 1);
 
 try {
     $conexion = new PDO(
@@ -23,17 +21,10 @@ try {
     
     // Procesar los resultados
     foreach ($usuarios as &$usuario) {
-        // Asegurar que todos los campos existan
-        $usuario['id'] = isset($usuario['id']) ? (int)$usuario['id'] : 0;
-        $usuario['Usuario'] = isset($usuario['Usuario']) ? $usuario['Usuario'] : '';
-        $usuario['Nombre'] = isset($usuario['Nombre']) ? $usuario['Nombre'] : '';
-        $usuario['TipoUsuario'] = isset($usuario['TipoUsuario']) ? $usuario['TipoUsuario'] : '';
-        $usuario['estado'] = isset($usuario['estado']) && !empty($usuario['estado']) ? $usuario['estado'] : 'Disponible';
-        $usuario['estado_mensaje'] = $usuario['estado_mensaje'] ?? null;
-        $usuario['estado_hasta'] = null;
-        $usuario['avatar'] = $usuario['avatar'] ?? '';
+        if (!isset($usuario['estado']) || empty($usuario['estado'])) {
+            $usuario['estado'] = 'Disponible';
+        }
         
-        // Formatear fecha si existe
         if (!empty($usuario['estado_hasta'])) {
             try {
                 $fecha = new DateTime($usuario['estado_hasta']);

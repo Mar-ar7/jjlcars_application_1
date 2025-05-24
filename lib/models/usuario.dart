@@ -21,10 +21,10 @@ class Usuario {
   
   factory Usuario.fromJson(Map<String, dynamic> json) {
     return Usuario(
-      id: json['id'],
-      usuario: json['Usuario'],
-      nombre: json['Nombre'],
-      tipoUsuario: json['TipoUsuario'],
+      id: int.parse(json['id'].toString()),
+      usuario: json['Usuario'] ?? '',
+      nombre: json['Nombre'] ?? '',
+      tipoUsuario: json['TipoUsuario'] ?? '',
       estado: json['estado'] ?? 'Disponible',
       estadoMensaje: json['estado_mensaje'],
       estadoHasta: json['estado_hasta'] != null ? DateTime.parse(json['estado_hasta']) : null,

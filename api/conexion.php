@@ -3,7 +3,7 @@ class Conexion {
     private static $host = 'localhost';
     private static $db   = 'jjlcars';
     private static $user = 'root';
-    private static $pass = '';
+    private static $pass = '';  // Asegúrate de que esto coincida con tu configuración de MySQL
     private static $charset = 'utf8mb4';
     private static $conexion = null;
 
@@ -18,23 +18,42 @@ class Conexion {
                 ];
 
                 self::$conexion = new PDO($dsn, self::$user, self::$pass, $opciones);
+                
+                // Verificar la conexión intentando una consulta simple
+                self::$conexion->query("SELECT 1");
+                
+                return self::$conexion;
             } catch (PDOException $e) {
-                throw new Exception('Error de conexión: ' . $e->getMessage());
+                error_log("Error de conexión a la base de datos: " . $e->getMessage());
+                throw new Exception("Error de conexión a la base de datos: " . $e->getMessage());
             }
         }
         return self::$conexion;
     }
+
+    // Método para probar la conexión
+    public static function probarConexion() {
+        try {
+            $conexion = self::conectar();
+            return [
+                'status' => 'success',
+                'message' => 'Conexión exitosa a la base de datos'
+            ];
+        } catch (Exception $e) {
+            return [
+                'status' => 'error',
+                'message' => $e->getMessage()
+            ];
+        }
+    }
 }
 
-// Para los nuevos archivos que necesitan la conexión directa
 function obtenerConexion() {
     try {
-        $conn = Conexion::conectar();
-        return $conn;
+        return Conexion::conectar();
     } catch (Exception $e) {
-        http_response_code(500);
-        echo json_encode(['error' => $e->getMessage()]);
-        die();
+        error_log("Error en obtenerConexion(): " . $e->getMessage());
+        throw new Exception("Error al establecer la conexión con la base de datos: " . $e->getMessage());
     }
 }
 ?> 
