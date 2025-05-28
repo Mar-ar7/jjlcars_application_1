@@ -12,13 +12,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
+require_once 'config.php';
+
 try {
-    $conexion = new PDO(
-        'mysql:host=localhost;dbname=jjlcars;charset=utf8mb4',
-        'root',
-        '',
-        array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION)
-    );
+    $conexion = getConnection();
     
     $consulta = $conexion->query('SELECT * FROM citas ORDER BY fecha, hora');
     if (!$consulta) {
@@ -51,6 +48,7 @@ try {
     ]);
     
 } catch (Exception $e) {
+    error_log("Error en obtener_citas.php: " . $e->getMessage());
     http_response_code(500);
     echo json_encode([
         'success' => false,
