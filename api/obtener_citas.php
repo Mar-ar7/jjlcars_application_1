@@ -12,10 +12,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-require_once 'config.php';
+require_once 'conexion.php';
 
 try {
-    $conexion = getConnection();
+    $conexion = Conexion::conectar();
     
     $consulta = $conexion->query('SELECT * FROM citas ORDER BY fecha, hora');
     if (!$consulta) {

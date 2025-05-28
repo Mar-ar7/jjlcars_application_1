@@ -12,6 +12,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
+require_once 'conexion.php';
+
 try {
     $data = json_decode(file_get_contents('php://input'), true);
     
@@ -25,12 +27,7 @@ try {
         throw new Exception('Status no válido');
     }
     
-    $conexion = new PDO(
-        'mysql:host=localhost;dbname=jjlcars;charset=utf8mb4',
-        'root',
-        '',
-        array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION)
-    );
+    $conexion = Conexion::conectar();
     
     $sql = "UPDATE citas SET status = ? WHERE id = ?";
     $stmt = $conexion->prepare($sql);
@@ -52,6 +49,7 @@ try {
     ]);
     
 } catch (Exception $e) {
+    error_log("Error en actualizar_estado_cita.php: " . $e->getMessage());
     http_response_code(500);
     echo json_encode([
         'success' => false,
