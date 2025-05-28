@@ -12,17 +12,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-require_once 'conexion.php';
+require_once 'config/database.php';
 
 try {
-    $conexion = Conexion::conectar();
-    
-    $consulta = $conexion->query('SELECT * FROM clientes ORDER BY nombre');
-    if (!$consulta) {
-        throw new Exception('Error al ejecutar la consulta');
-    }
-    
-    $clientes = $consulta->fetchAll(PDO::FETCH_ASSOC);
+    $sql = "SELECT * FROM clientes ORDER BY nombre";
+    $clientes = Database::fetchAll($sql);
     
     // Procesar los resultados
     $clientesProcesados = [];

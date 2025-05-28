@@ -12,39 +12,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-require_once 'conexion.php';
+require_once 'config/database.php';
 
 try {
-    $conexion = Conexion::conectar();
-    
-    $consulta = $conexion->query('SELECT * FROM citas ORDER BY fecha, hora');
-    if (!$consulta) {
-        throw new Exception('Error al ejecutar la consulta');
-    }
-    
-    $citas = $consulta->fetchAll(PDO::FETCH_ASSOC);
+    $sql = "SELECT * FROM citas ORDER BY fecha DESC, hora DESC";
+    $citas = Database::fetchAll($sql);
     
     // Procesar los resultados
-    $citasProcesadas = [];
-    foreach ($citas as $cita) {
-        $citaProcesada = [
-            'id' => (int)$cita['id'],
-            'tipoCita' => (string)$cita['tipoCita'],
-            'tipoCompra' => (string)$cita['tipoCompra'],
-            'precio' => (float)$cita['precio'],
-            'nombre' => (string)$cita['nombre'],
-            'correo' => (string)$cita['correo'],
-            'fecha' => (string)$cita['fecha'],
-            'hora' => (string)$cita['hora'],
-            'status' => (string)$cita['status']
-        ];
+    foreach ($citas as &$cita) {
+        // Asegurar que los tipos de datos sean correctos
+        $cita['id'] = (int)$cita['id'];
+        $cita['precio'] = (float)$cita['precio'];
         
-        $citasProcesadas[] = $citaProcesada;
+        // Formatear las fechas
+        if (!empty($cita['fecha'])) {
+            $fecha = new DateTime($cita['fecha']);
+            $cita['fecha'] = $fecha->format('Y-m-d');
+        }
+        
+        if (!empty($cita['fecha_registro'])) {
+            $fecha = new DateTime($cita['fecha_registro']);
+            $cita['fecha_registro'] = $fecha->format('Y-m-d H:i:s');
+        }
     }
     
     echo json_encode([
         'success' => true,
-        'citas' => $citasProcesadas
+        'citas' => $citas
     ]);
     
 } catch (Exception $e) {

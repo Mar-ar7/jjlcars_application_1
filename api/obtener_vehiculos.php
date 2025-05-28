@@ -12,44 +12,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-require_once 'conexion.php';
+require_once 'config/database.php';
 
 try {
-    $conexion = Conexion::conectar();
-    
-    $consulta = $conexion->query('SELECT * FROM vehiculos ORDER BY marca, modelo');
-    if (!$consulta) {
-        throw new Exception('Error al ejecutar la consulta');
-    }
-    
-    $vehiculos = $consulta->fetchAll(PDO::FETCH_ASSOC);
+    $sql = "SELECT * FROM vehiculos ORDER BY marca, modelo";
+    $vehiculos = Database::fetchAll($sql);
     
     // Procesar los resultados
-    $vehiculosProcesados = [];
-    foreach ($vehiculos as $vehiculo) {
+    foreach ($vehiculos as &$vehiculo) {
+        // Asegurar que los tipos de datos sean correctos
+        $vehiculo['id'] = (int)$vehiculo['id'];
+        $vehiculo['precio'] = (float)$vehiculo['precio'];
+        $vehiculo['inventario'] = (int)$vehiculo['inventario'];
+        
         // Construir la URL completa de la imagen
-        $imagenUrl = $vehiculo['imagen'];
-        if (!empty($imagenUrl) && !filter_var($imagenUrl, FILTER_VALIDATE_URL)) {
-            // Si la imagen no es una URL completa, construir la ruta relativa
-            $imagenUrl = '/Imagen/' . $imagenUrl;
+        if (!empty($vehiculo['imagen'])) {
+            $vehiculo['imagen'] = '/Imagen/' . $vehiculo['imagen'];
         }
-        
-        $vehiculoProcesado = [
-            'id' => (int)$vehiculo['id'],
-            'marca' => (string)$vehiculo['marca'],
-            'modelo' => (string)$vehiculo['modelo'],
-            'descripcion' => (string)$vehiculo['descripcion'],
-            'precio' => (float)$vehiculo['precio'],
-            'imagen' => $imagenUrl,
-            'inventario' => (int)$vehiculo['inventario']
-        ];
-        
-        $vehiculosProcesados[] = $vehiculoProcesado;
     }
     
     echo json_encode([
         'success' => true,
-        'vehiculos' => $vehiculosProcesados
+        'vehiculos' => $vehiculos
     ]);
     
 } catch (Exception $e) {

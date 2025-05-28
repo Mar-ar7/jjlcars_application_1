@@ -12,7 +12,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-require_once 'conexion.php';
+require_once 'config/database.php';
 
 try {
     $data = json_decode(file_get_contents('php://input'), true);
@@ -21,12 +21,8 @@ try {
         throw new Exception('Faltan datos requeridos');
     }
     
-    $conexion = Conexion::conectar();
-    
-    // Crear la nueva cita
     $sql = "INSERT INTO citas (tipoCita, tipoCompra, precio, nombre, correo, fecha, hora, status) VALUES (?, ?, ?, ?, ?, ?, ?, 'Pendiente')";
-    $stmt = $conexion->prepare($sql);
-    $stmt->execute([
+    $params = [
         $data['tipoCita'] ?? '',
         $data['tipoCompra'] ?? '',
         $data['precio'] ?? 0,
@@ -34,14 +30,13 @@ try {
         $data['correo'],
         $data['fecha'],
         $data['hora']
-    ]);
+    ];
     
-    $nuevoId = $conexion->lastInsertId();
+    $nuevoId = Database::insert($sql, $params);
     
     // Obtener la cita recién creada
-    $stmt = $conexion->prepare('SELECT * FROM citas WHERE id = ?');
-    $stmt->execute([$nuevoId]);
-    $cita = $stmt->fetch(PDO::FETCH_ASSOC);
+    $sql = "SELECT * FROM citas WHERE id = ?";
+    $cita = Database::fetchOne($sql, [$nuevoId]);
     
     echo json_encode([
         'success' => true,
