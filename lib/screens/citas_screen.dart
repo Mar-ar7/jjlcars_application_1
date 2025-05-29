@@ -11,7 +11,7 @@ class CitasScreen extends StatefulWidget {
 
 class _CitasScreenState extends State<CitasScreen> {
   final ApiService _apiService = ApiService();
-  List<Map<String, dynamic>> _citas = [];
+  List<Cita> _citas = [];
   bool _isLoading = true;
   String? _error;
 
@@ -22,24 +22,38 @@ class _CitasScreenState extends State<CitasScreen> {
   }
 
   Future<void> _cargarCitas() async {
+  try {
+    final citas = await _apiService.getCitas();
+    setState(() {
+      _citas = citas;
+      _isLoading = false;
+      _error = null;
+    });
+  } catch (e) {
+    print('Error al cargar citas: $e');
+    setState(() {
+      _error = 'Error al cargar las citas: $e';
+      _isLoading = false;
+    });
+  }
+}
+
+  Future<void> _actualizarStatus(Cita cita, String nuevoStatus) async {
     try {
-     final citasRaw = await _apiService.getData<Cita>('citas.php', (json) => Cita.fromJson(json));
-
-
-      print('Citas cargadas: $citasRaw'); // Log para depuración
-
-      final citas = List<Map<String, dynamic>>.from(citasRaw);
-
+      await _apiService.postData(
+        'actualizar_cita_status.php',
+        {
+          'id': cita.id.toString(),
+          'status': nuevoStatus,
+        },
+      );
       setState(() {
-        _citas = citas;
-        _isLoading = false;
-        _error = null;
+        cita.status = nuevoStatus;
       });
     } catch (e) {
-      setState(() {
-        _error = 'Error al cargar las citas: $e';
-        _isLoading = false;
-      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al actualizar status: $e')),
+      );
     }
   }
 
@@ -61,28 +75,9 @@ class _CitasScreenState extends State<CitasScreen> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        _error!,
-                        style: const TextStyle(color: Colors.red),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 16),
-                      ElevatedButton(
-                        onPressed: () {
-                          setState(() => _isLoading = true);
-                          _cargarCitas();
-                        },
-                        child: const Text('Reintentar'),
-                      ),
-                    ],
-                  ),
-                )
+              ? Center(child: Text(_error!, style: const TextStyle(color: Colors.red)))
               : _citas.isEmpty
-                  ? const Center(child: Text('No hay citas programadas'))
+                  ? const Center(child: Text('No hay citas registradas'))
                   : ListView.builder(
                       padding: const EdgeInsets.all(16),
                       itemCount: _citas.length,
@@ -96,33 +91,41 @@ class _CitasScreenState extends State<CitasScreen> {
                           ),
                           child: ListTile(
                             contentPadding: const EdgeInsets.all(16),
-                            title: Text(
-                              cita['nombre'] ?? 'Sin nombre',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
+                            leading: CircleAvatar(
+                              child: Text(
+                                cita.nombre.isNotEmpty
+                                    ? cita.nombre[0].toUpperCase()
+                                    : '?',
                               ),
                             ),
+                            title: Text('${cita.tipoCita} - ${cita.nombre}'),
                             subtitle: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const SizedBox(height: 8),
-                                Text('Correo: ${cita['correo'] ?? 'N/A'}'),
-                                Text('Fecha: ${cita['fecha'] ?? 'N/A'}'),
-                                Text('Hora: ${cita['hora'] ?? 'N/A'}'),
-                                Text('Estado: ${cita['status'] ?? 'Pendiente'}'),
+                                Text('Correo: ${cita.correo}'),
+                                Text('Tipo compra: ${cita.tipoCompra}'),
+                                Text('Precio: Q${cita.precio}'),
+                                Text('Fecha: ${cita.fecha} ${cita.hora}'),
+                                Text('Status: ${cita.status}'),
                               ],
+                            ),
+                            trailing: DropdownButton<String>(
+                              value: cita.status,
+                              items: const [
+                                DropdownMenuItem(value: 'Pendiente', child: Text('Pendiente')),
+                                DropdownMenuItem(value: 'Aprobada', child: Text('Aprobada')),
+                                DropdownMenuItem(value: 'Cancelada', child: Text('Cancelada')),
+                              ],
+                              onChanged: (nuevoStatus) {
+                                if (nuevoStatus != null && nuevoStatus != cita.status) {
+                                  _actualizarStatus(cita, nuevoStatus);
+                                }
+                              },
                             ),
                           ),
                         );
                       },
                     ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.pushNamed(context, '/nueva_cita').then((_) => _cargarCitas());
-        },
-        child: const Icon(Icons.add),
-      ),
     );
   }
 }

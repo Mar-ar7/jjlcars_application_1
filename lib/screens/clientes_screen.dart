@@ -90,8 +90,12 @@ class _ClientesScreenState extends State<ClientesScreen> {
                           child: ListTile(
                             contentPadding: const EdgeInsets.all(16),
                             leading: CircleAvatar(
-                              child: Text(cliente.nombre[0].toUpperCase()),
-                            ),
+                            child: Text(
+                              (cliente.nombre != null && cliente.nombre.isNotEmpty)
+                                ? cliente.nombre[0].toUpperCase()
+                              : '?',
+    ),
+  ),
                             title: Text(cliente.nombre),
                             subtitle: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,

@@ -111,9 +111,54 @@ class ApiService {
   }
 
   // Obtener lista de citas
-  Future<List<Cita>> getCitas() async {
-    return getData<Cita>('citas.php', (json) => Cita.fromJson(json));
+ Future<List<Cita>> getCitas() async {
+  try {
+    print('Iniciando carga de citas...'); 
+    
+    final response = await http.get(
+      Uri.parse('$baseUrl/obtener_citas.php'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+    );
+
+    print('Código de estado: ${response.statusCode}');
+    print('Respuesta recibida: ${response.body}');
+
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> decoded = json.decode(response.body);
+      print('JSON decodificado: $decoded');
+
+      // Verificar que tengamos la estructura correcta
+      if (decoded['success'] == true && decoded['citas'] != null) {
+        final List<dynamic> citasList = decoded['citas'];
+        print('Lista de citas encontrada: ${citasList.length}');
+        
+        final citas = citasList.map((json) {
+          print('Procesando cita individual: $json');
+          try {
+            return Cita.fromJson(json);
+          } catch (e) {
+            print('Error al procesar cita: $e');
+            rethrow;
+          }
+        }).toList();
+
+        print('Citas procesadas exitosamente');
+        return citas;
+      } else {
+        throw Exception('La respuesta no contiene citas válidas');
+      }
+    } else {
+      throw Exception('Error del servidor: ${response.statusCode}');
+    }
+  } catch (e, stack) {
+    print('Error detallado: $e');
+    print('Stack trace: $stack');
+    throw Exception('Error al cargar citas: $e');
   }
+}
 
   // Agendar cita
   Future<bool> agendarCita(String nombre, String correo, DateTime fecha, String hora) async {

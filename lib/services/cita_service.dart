@@ -53,6 +53,7 @@ class CitaService {
         }
 
         final List<Cita> citas = citasJson.map((json) {
+          developer.log('JSON recibido: $json');
           try {
             return Cita.fromJson(json);
           } catch (e) {
