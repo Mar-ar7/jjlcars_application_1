@@ -9,43 +9,60 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
-error_reporting(E_ALL);
 ini_set('display_errors', 1);
+error_reporting(E_ALL);
 
-require_once 'config/database.php';
+function debug_log($message) {
+    error_log(print_r($message, true));
+}
 
 try {
-    $sql = "SELECT * FROM citas ORDER BY fecha DESC, hora DESC";
-    $citas = Database::fetchAll($sql);
-    
-    // Procesar los resultados
-    foreach ($citas as &$cita) {
-        // Asegurar que los tipos de datos sean correctos
-        $cita['id'] = (int)$cita['id'];
-        $cita['precio'] = (float)$cita['precio'];
-        
-        // Formatear las fechas
-        if (!empty($cita['fecha'])) {
-            $fecha = new DateTime($cita['fecha']);
-            $cita['fecha'] = $fecha->format('Y-m-d');
-        }
-        
-        if (!empty($cita['fecha_registro'])) {
-            $fecha = new DateTime($cita['fecha_registro']);
-            $cita['fecha_registro'] = $fecha->format('Y-m-d H:i:s');
-        }
+    $conexion = new PDO(
+        'mysql:host=localhost;dbname=jjlcars;charset=utf8mb4',
+        'root',
+        '',
+        array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION)
+    );
+
+    debug_log("Conexión establecida");
+
+    $consulta = $conexion->query('SELECT id, nombre, correo, fecha, hora FROM citas');
+    if (!$consulta) {
+        throw new Exception('Error al ejecutar la consulta');
     }
-    
-    echo json_encode([
+
+    $citas = $consulta->fetchAll(PDO::FETCH_ASSOC);
+    debug_log("Citas obtenidas: " . count($citas));
+
+    // Procesar resultados si necesitas (ejemplo: formatear fecha)
+    $citasProcesadas = [];
+    foreach ($citas as $cita) {
+        $citaProcesada = [
+            'id' => isset($cita['id']) ? (int)$cita['id'] : 0,
+            'nombre' => isset($cita['nombre']) ? (string)$cita['nombre'] : '',
+            'correo' => isset($cita['correo']) ? (string)$cita['correo'] : '',
+            'fecha' => isset($cita['fecha']) ? (string)$cita['fecha'] : '',
+            'hora' => isset($cita['hora']) ? (string)$cita['hora'] : '',
+        ];
+        $citasProcesadas[] = $citaProcesada;
+    }
+
+    debug_log("Citas procesadas: " . count($citasProcesadas));
+
+    $respuesta = [
         'success' => true,
-        'citas' => $citas
-    ]);
-    
+        'citas' => $citasProcesadas,
+    ];
+
+    debug_log("Respuesta final: " . json_encode($respuesta));
+
+    echo json_encode($respuesta, JSON_THROW_ON_ERROR);
+
 } catch (Exception $e) {
-    error_log("Error en obtener_citas.php: " . $e->getMessage());
+    debug_log("Error: " . $e->getMessage());
     http_response_code(500);
     echo json_encode([
         'success' => false,
         'error' => $e->getMessage()
-    ]);
-} 
+    ], JSON_THROW_ON_ERROR);
+}

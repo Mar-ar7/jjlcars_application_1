@@ -3,12 +3,14 @@ import 'package:http/http.dart' as http;
 import '../config/api_config.dart';
 import '../models/vehiculo.dart';
 import '../models/usuario.dart';
+import '../models/cita.dart';
+
 
 class ApiService {
   final String baseUrl = ApiConfig.baseUrl;
-  
-  // Método genérico para obtener datos
-  Future<List<dynamic>> getData(String endpoint) async {
+
+  // Método genérico para obtener lista de objetos con parseo fuerte
+  Future<List<T>> getData<T>(String endpoint, T Function(Map<String, dynamic>) fromJson) async {
     try {
       final response = await http.get(
         Uri.parse('$baseUrl/$endpoint'),
@@ -19,16 +21,29 @@ class ApiService {
       );
 
       if (response.statusCode == 200) {
-        return json.decode(response.body);
+        final decoded = json.decode(response.body);
+
+        if (decoded['success'] == true) {
+          // Suponemos que la clave con datos es el nombre del endpoint sin ".php"
+          final key = endpoint.replaceAll('.php', '');
+          if (decoded.containsKey(key)) {
+            final List<dynamic> list = decoded[key];
+            return list.map<T>((json) => fromJson(json)).toList();
+          } else {
+            throw Exception('Respuesta sin datos para $key');
+          }
+        } else {
+          throw Exception(decoded['error'] ?? 'Error desconocido del servidor');
+        }
       } else {
-        throw Exception('Error al obtener datos de $endpoint');
+        throw Exception('Error al obtener datos de $endpoint: ${response.statusCode}');
       }
     } catch (e) {
       throw Exception('Error de conexión: $e');
     }
   }
 
-  // Método genérico para enviar datos
+  // Método genérico para enviar datos POST
   Future<Map<String, dynamic>> postData(String endpoint, Map<String, dynamic> body) async {
     try {
       final response = await http.post(
@@ -50,8 +65,8 @@ class ApiService {
       throw Exception('Error de conexión: $e');
     }
   }
-  
-  // Autenticación
+
+  // Login
   Future<Map<String, dynamic>> login(String username, String password) async {
     try {
       final response = await http.post(
@@ -66,21 +81,17 @@ class ApiService {
         }),
       );
 
-      print('URL de login: ${Uri.parse('$baseUrl/login.php')}');
-      print('Código de respuesta: ${response.statusCode}');
-      print('Respuesta: ${response.body}');
-
       if (response.statusCode == 200) {
         return json.decode(response.body);
       } else {
         throw Exception('Error de servidor: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
-      print('Error de conexión: $e');
       throw Exception('Error de conexión: $e');
     }
   }
 
+  // Registro de usuario
   Future<Map<String, dynamic>> registro({
     required String nombre,
     required String usuario,
@@ -90,17 +101,21 @@ class ApiService {
       'Nombre': nombre,
       'Usuario': usuario,
       'password': password,
-      'TipoUsuario': 'Usuario', // Por defecto se registra como usuario normal
+      'TipoUsuario': 'Usuario', // Por defecto
     });
   }
 
-  // Vehículos
+  // Obtener lista de vehículos
   Future<List<Vehiculo>> getVehiculos() async {
-    final data = await getData('vehiculos.php');
-    return data.map((json) => Vehiculo.fromJson(json)).toList();
+    return getData<Vehiculo>('vehiculos.php', (json) => Vehiculo.fromJson(json));
   }
 
-  // Citas
+  // Obtener lista de citas
+  Future<List<Cita>> getCitas() async {
+    return getData<Cita>('citas.php', (json) => Cita.fromJson(json));
+  }
+
+  // Agendar cita
   Future<bool> agendarCita(String nombre, String correo, DateTime fecha, String hora) async {
     final response = await postData('procesar_cita.php', {
       'nombre': nombre,
@@ -111,7 +126,7 @@ class ApiService {
     return response['success'] ?? false;
   }
 
-  // Contacto
+  // Enviar contacto
   Future<bool> enviarContacto(String nombre, String correo, String mensaje) async {
     final response = await postData('guardar_contacto.php', {
       'nombre': nombre,
@@ -121,18 +136,17 @@ class ApiService {
     return response['success'] ?? false;
   }
 
-  // Compras
+  // Realizar compra
   Future<bool> realizarCompra(String clienteNombre, String clienteEmail, int vehiculoId, int cantidad, double totalPrecio) async {
     final response = await postData('nueva_compra.php', {
       'cliente_nombre': clienteNombre,
       'cliente_email': clienteEmail,
-      'vehiculo_id': vehiculoId.toString(),
-      'cantidad': cantidad.toString(),
-      'total_precio': totalPrecio.toString(),
+      'vehiculo_id': vehiculoId,
+      'cantidad': cantidad,
+      'total_precio': totalPrecio,
     });
     return response['success'] ?? false;
   }
 
-  // Métodos similares para ventas, empleados y clientes
-  // Implementa los métodos según tus necesidades
+  // Aquí puedes agregar más métodos según necesites
 }

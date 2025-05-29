@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
+import '../models/cita.dart';
 
 class CitasScreen extends StatefulWidget {
   const CitasScreen({super.key});
@@ -10,7 +11,7 @@ class CitasScreen extends StatefulWidget {
 
 class _CitasScreenState extends State<CitasScreen> {
   final ApiService _apiService = ApiService();
-  List<dynamic> _citas = [];
+  List<Map<String, dynamic>> _citas = [];
   bool _isLoading = true;
   String? _error;
 
@@ -22,7 +23,13 @@ class _CitasScreenState extends State<CitasScreen> {
 
   Future<void> _cargarCitas() async {
     try {
-      final citas = await _apiService.getData('citas.php');
+     final citasRaw = await _apiService.getData<Cita>('citas.php', (json) => Cita.fromJson(json));
+
+
+      print('Citas cargadas: $citasRaw'); // Log para depuración
+
+      final citas = List<Map<String, dynamic>>.from(citasRaw);
+
       setState(() {
         _citas = citas;
         _isLoading = false;
@@ -45,9 +52,7 @@ class _CitasScreenState extends State<CitasScreen> {
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () {
-              setState(() {
-                _isLoading = true;
-              });
+              setState(() => _isLoading = true);
               _cargarCitas();
             },
           ),
@@ -68,9 +73,7 @@ class _CitasScreenState extends State<CitasScreen> {
                       const SizedBox(height: 16),
                       ElevatedButton(
                         onPressed: () {
-                          setState(() {
-                            _isLoading = true;
-                          });
+                          setState(() => _isLoading = true);
                           _cargarCitas();
                         },
                         child: const Text('Reintentar'),
@@ -79,9 +82,7 @@ class _CitasScreenState extends State<CitasScreen> {
                   ),
                 )
               : _citas.isEmpty
-                  ? const Center(
-                      child: Text('No hay citas programadas'),
-                    )
+                  ? const Center(child: Text('No hay citas programadas'))
                   : ListView.builder(
                       padding: const EdgeInsets.all(16),
                       itemCount: _citas.length,
@@ -96,7 +97,7 @@ class _CitasScreenState extends State<CitasScreen> {
                           child: ListTile(
                             contentPadding: const EdgeInsets.all(16),
                             title: Text(
-                              cita['nombre'],
+                              cita['nombre'] ?? 'Sin nombre',
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 16,
@@ -106,9 +107,10 @@ class _CitasScreenState extends State<CitasScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 const SizedBox(height: 8),
-                                Text('Correo: ${cita['correo']}'),
-                                Text('Fecha: ${cita['fecha']}'),
-                                Text('Hora: ${cita['hora']}'),
+                                Text('Correo: ${cita['correo'] ?? 'N/A'}'),
+                                Text('Fecha: ${cita['fecha'] ?? 'N/A'}'),
+                                Text('Hora: ${cita['hora'] ?? 'N/A'}'),
+                                Text('Estado: ${cita['status'] ?? 'Pendiente'}'),
                               ],
                             ),
                           ),

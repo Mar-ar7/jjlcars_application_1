@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
+import '../models/cliente.dart';
 
 class ClientesScreen extends StatefulWidget {
   const ClientesScreen({super.key});
@@ -10,7 +11,7 @@ class ClientesScreen extends StatefulWidget {
 
 class _ClientesScreenState extends State<ClientesScreen> {
   final ApiService _apiService = ApiService();
-  List<dynamic> _clientes = [];
+  List<Cliente> _clientes = [];
   bool _isLoading = true;
   String? _error;
 
@@ -22,7 +23,10 @@ class _ClientesScreenState extends State<ClientesScreen> {
 
   Future<void> _cargarClientes() async {
     try {
-      final clientes = await _apiService.getData('contacto.php');
+      final clientes = await _apiService.getData<Cliente>(
+        'clientes.php',
+        (json) => Cliente.fromJson(json),
+      );
       setState(() {
         _clientes = clientes;
         _isLoading = false;
@@ -45,9 +49,7 @@ class _ClientesScreenState extends State<ClientesScreen> {
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () {
-              setState(() {
-                _isLoading = true;
-              });
+              setState(() => _isLoading = true);
               _cargarClientes();
             },
           ),
@@ -60,17 +62,11 @@ class _ClientesScreenState extends State<ClientesScreen> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(
-                        _error!,
-                        style: const TextStyle(color: Colors.red),
-                        textAlign: TextAlign.center,
-                      ),
+                      Text(_error!, style: const TextStyle(color: Colors.red)),
                       const SizedBox(height: 16),
                       ElevatedButton(
                         onPressed: () {
-                          setState(() {
-                            _isLoading = true;
-                          });
+                          setState(() => _isLoading = true);
                           _cargarClientes();
                         },
                         child: const Text('Reintentar'),
@@ -79,9 +75,7 @@ class _ClientesScreenState extends State<ClientesScreen> {
                   ),
                 )
               : _clientes.isEmpty
-                  ? const Center(
-                      child: Text('No hay clientes registrados'),
-                    )
+                  ? const Center(child: Text('No hay clientes registrados'))
                   : ListView.builder(
                       padding: const EdgeInsets.all(16),
                       itemCount: _clientes.length,
@@ -96,29 +90,17 @@ class _ClientesScreenState extends State<ClientesScreen> {
                           child: ListTile(
                             contentPadding: const EdgeInsets.all(16),
                             leading: CircleAvatar(
-                              child: Text(
-                                cliente['nombre'][0].toUpperCase(),
-                                style: const TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
+                              child: Text(cliente.nombre[0].toUpperCase()),
                             ),
-                            title: Text(
-                              cliente['nombre'],
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                              ),
-                            ),
+                            title: Text(cliente.nombre),
                             subtitle: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 const SizedBox(height: 8),
-                                Text('Correo: ${cliente['correo']}'),
-                                if (cliente['mensaje'] != null)
+                                Text('Correo: ${cliente.correo}'),
+                                if (cliente.mensaje != null)
                                   Text(
-                                    'Mensaje: ${cliente['mensaje']}',
+                                    'Mensaje: ${cliente.mensaje}',
                                     maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
                                   ),

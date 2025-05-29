@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../widgets/custom_drawer.dart';
 import '../services/api_service.dart';
+import '../models/ventas.dart';
+
 
 class VentasScreen extends StatefulWidget {
   @override
@@ -21,7 +23,7 @@ class _VentasScreenState extends State<VentasScreen> {
 
   Future<void> _cargarVentas() async {
     try {
-      final ventas = await _apiService.getData('ventas.php');
+     final ventas = await _apiService.getData<Venta>('ventas.php', Venta.fromJson);
       setState(() {
         _ventas = ventas;
         _isLoading = false;
