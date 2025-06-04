@@ -34,7 +34,7 @@ class _LoginScreenState extends State<LoginScreen> {
       if (response['success']) {
         if (!mounted) return;
         // Navegar al home y guardar los datos del usuario
-        Navigator.pushReplacementNamed(context, '/home', arguments: response['user']);
+        Navigator.pushReplacementNamed(context, '/home', arguments: response['usuario']);
       } else {
         setState(() {
           _errorMessage = response['message'] ?? 'Error al iniciar sesión';

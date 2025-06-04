@@ -155,9 +155,9 @@ class UsuarioService {
           'Accept': 'application/json',
         },
         body: json.encode({
-          'Usuario': usuario,
+          'usuario': usuario,
           'Nombre': nombre,
-          'Password': password,
+          'password': password,
           'TipoUsuario': tipoUsuario,
         }),
       );
