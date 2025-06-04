@@ -1,1 +1,0 @@
-<?php\n<?php\nheader(\'Content-Type: application/json\');\necho json_encode([\'success\' => true, \'message\' => \'Prueba exitosa\']);\n?> 
