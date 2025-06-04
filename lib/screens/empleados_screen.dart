@@ -47,6 +47,8 @@ class _EmpleadosScreenState extends State<EmpleadosScreen> {
     final usuarioController = TextEditingController(text: usuario?.usuario);
     final passwordController = TextEditingController();
     String tipoUsuario = usuario?.tipoUsuario ?? 'Vendedor';
+    // Normalizar para que coincida con los valores del Dropdown
+    tipoUsuario = tipoUsuario[0].toUpperCase() + tipoUsuario.substring(1).toLowerCase();
 
     final result = await showDialog<bool>(
       context: context,
@@ -77,6 +79,7 @@ class _EmpleadosScreenState extends State<EmpleadosScreen> {
                 value: tipoUsuario,
                 decoration: const InputDecoration(labelText: 'Tipo de Usuario'),
                 items: ['Administrador', 'Gerente', 'Vendedor']
+                    .toSet()
                     .map((tipo) => DropdownMenuItem(
                           value: tipo,
                           child: Text(tipo),

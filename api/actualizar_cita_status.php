@@ -3,8 +3,12 @@ header('Content-Type: application/json');
 include 'conexion.php'; // Asegúrate de tener tu conexión aquí
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $id = $_POST['id'] ?? null;
-    $status = $_POST['status'] ?? null;
+    // Leer datos JSON del body
+    $input = file_get_contents('php://input');
+    $data = json_decode($input, true);
+
+    $id = $data['id'] ?? null;
+    $status = $data['status'] ?? null;
 
     if ($id && $status) {
         $stmt = $conn->prepare("UPDATE citas SET status = ? WHERE id = ?");
