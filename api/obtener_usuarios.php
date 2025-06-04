@@ -41,10 +41,16 @@ try {
                 $usuario['estado_hasta'] = $fecha->format('Y-m-d H:i:s');
             }
         }
-        echo json_encode($usuarios);
+        echo json_encode([
+            'success' => true,
+            'usuarios' => $usuarios
+        ]);
     } else {
-        // Si no hay usuarios, devolver un array vacío
-        echo json_encode([]);
+        // Si no hay usuarios, devolver un array vacío dentro de un objeto
+        echo json_encode([
+            'success' => true,
+            'usuarios' => []
+        ]);
     }
 } catch (Exception $e) {
     error_log("Error en obtener_usuarios.php: " . $e->getMessage());
