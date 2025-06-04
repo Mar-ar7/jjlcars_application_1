@@ -1,8 +1,8 @@
 class ApiConfig {
   // URL base para el backend PHP en XAMPP
   // Usa la IP de tu computadora cuando pruebes en un dispositivo o emulador
-  static const String baseUrl = 'http://localhost/jjlcars_application_1/api';  // Para desarrollo local
-  // static const String baseUrl = 'http://10.0.2.2:80/jjlcars/api';  // Para emulador Android
+  static const String baseUrl = 'http://10.0.2.2/jjlcars_application_1/api';  // Para emulador Android
+  // static const String baseUrl = 'http://localhost/jjlcars_application_1/api';  // Para desarrollo local
   // static const String baseUrl = 'http://192.168.1.107:80/jjlcars/api';  // Para dispositivo físico
   
   // Autenticación
