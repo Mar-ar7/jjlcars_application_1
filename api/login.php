@@ -43,14 +43,15 @@ try {
         throw new Exception('Credenciales inválidas');
     }
 
-    // En tu base de datos, la contraseña para Daniela es '123456'
-    if ($user['password'] === $password) {
+    // Verificar la contraseña ingresada con el hash almacenado
+    if (password_verify($password, $user['password'])) {
         unset($user['password']);
         echo json_encode([
             'success' => true,
             'usuario' => $user
         ]);
     } else {
+        error_log("Contraseña inválida para usuario: " . $usuario);
         throw new Exception('Credenciales inválidas');
     }
 

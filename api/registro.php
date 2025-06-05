@@ -10,7 +10,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $usuario = $_POST['usuario'];
     $nombre = $_POST['nombre'];
     $password = $_POST['password'];
-    $tipoUsuario = "Usuario"; // Tipo fijo
+    // $tipoUsuario = "Usuario"; // Tipo fijo - REMOVED
+
+    // Get TipoUsuario from POST data and validate
+    $allowedUserTypes = ['Usuario', 'Vendedor', 'Gerente', 'Administrador'];
+    $tipoUsuario = $_POST['tipoUsuario'] ?? ''; // Get type from POST, default to empty
+
+    if (!in_array($tipoUsuario, $allowedUserTypes)) {
+        // Default to 'Usuario' if the provided type is invalid or missing
+        $tipoUsuario = 'Usuario';
+         error_log("Invalid TipoUsuario received during registration: " . ($_POST['tipoUsuario'] ?? '[not provided]') . ". Defaulting to 'Usuario'.");
+    }
+
+    // Hash de la contraseña antes de almacenarla
+    $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
     // Validar si el nombre de usuario ya existe
     $verificar_sql = "SELECT * FROM Usuarios WHERE Usuario = ?";
@@ -26,7 +39,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     } else {
         $sql = "INSERT INTO Usuarios (Usuario, Nombre, password, TipoUsuario) VALUES (?, ?, ?, ?)";
         $stmt = $conn->prepare($sql);
-        $stmt->bind_param("ssss", $usuario, $nombre, $password, $tipoUsuario);
+        $stmt->bind_param("ssss", $usuario, $nombre, $hashed_password, $tipoUsuario);
 
         if ($stmt->execute()) {
             $mensaje = "¡Registro exitoso! Ahora puedes iniciar sesión.";

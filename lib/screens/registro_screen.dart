@@ -17,6 +17,12 @@ class _RegistroScreenState extends State<RegistroScreen> {
   bool _isLoading = false;
   String? _errorMessage;
 
+  bool _isPasswordVisible = false;
+  bool _isConfirmPasswordVisible = false;
+
+  final List<String> _userTypes = ['Usuario', 'Vendedor', 'Gerente', 'Administrador'];
+  String? _selectedUserType;
+
   final ApiService _apiService = ApiService();
 
   Future<void> _registro() async {
@@ -39,6 +45,7 @@ class _RegistroScreenState extends State<RegistroScreen> {
         nombre: _nombreController.text,
         usuario: _usuarioController.text,
         password: _passwordController.text,
+        tipoUsuario: _selectedUserType!,
       );
 
       if (response['success']) {
@@ -145,6 +152,35 @@ class _RegistroScreenState extends State<RegistroScreen> {
                           },
                         ),
                         const SizedBox(height: 16),
+                        DropdownButtonFormField<String>(
+                          decoration: InputDecoration(
+                            labelText: 'Tipo de Usuario',
+                            prefixIcon: const Icon(Icons.person_search),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          value: _selectedUserType,
+                          hint: const Text('Selecciona Tipo de Usuario'),
+                          items: _userTypes.map((String type) {
+                            return DropdownMenuItem<String>(
+                              value: type,
+                              child: Text(type),
+                            );
+                          }).toList(),
+                          onChanged: (String? newValue) {
+                            setState(() {
+                              _selectedUserType = newValue;
+                            });
+                          },
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Por favor selecciona un tipo de usuario';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 16),
                         TextFormField(
                           controller: _passwordController,
                           decoration: InputDecoration(
@@ -153,8 +189,18 @@ class _RegistroScreenState extends State<RegistroScreen> {
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _isPasswordVisible = !_isPasswordVisible;
+                                });
+                              },
+                            ),
                           ),
-                          obscureText: true,
+                          obscureText: !_isPasswordVisible,
                           validator: (value) {
                             if (value == null || value.isEmpty) {
                               return 'Por favor ingrese una contraseña';
@@ -174,8 +220,18 @@ class _RegistroScreenState extends State<RegistroScreen> {
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _isConfirmPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
+                                });
+                              },
+                            ),
                           ),
-                          obscureText: true,
+                          obscureText: !_isConfirmPasswordVisible,
                           validator: (value) {
                             if (value == null || value.isEmpty) {
                               return 'Por favor confirme su contraseña';

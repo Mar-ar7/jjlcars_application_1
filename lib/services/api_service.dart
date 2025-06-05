@@ -193,5 +193,25 @@ class ApiService {
     return response['success'] ?? false;
   }
 
+  // Solicitar restablecimiento de contraseña
+  Future<Map<String, dynamic>> requestPasswordReset({
+    required String usuario,
+  }) async {
+    return postData('request_password_reset.php', {
+      'usuario': usuario,
+    });
+  }
+
+  // Restablecer contraseña con token
+  Future<Map<String, dynamic>> resetPassword({
+    required String token,
+    required String newPassword,
+  }) async {
+    return postData('reset_password.php', {
+      'token': token,
+      'new_password': newPassword,
+    });
+  }
+
   // Aquí puedes agregar más métodos según necesites
 }
