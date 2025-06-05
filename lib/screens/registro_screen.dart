@@ -160,6 +160,7 @@ class _RegistroScreenState extends State<RegistroScreen> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
+                          isExpanded: true,
                           value: _selectedUserType,
                           hint: const Text('Selecciona Tipo de Usuario'),
                           items: _userTypes.map((String type) {
