@@ -99,10 +99,10 @@ class ApiService {
     required String tipoUsuario,
   }) async {
     return postData('registro.php', {
-      'Nombre': nombre,
-      'Usuario': usuario,
+      'nombre': nombre,
+      'usuario': usuario,
       'password': password,
-      'TipoUsuario': tipoUsuario,
+      'tipoUsuario': tipoUsuario,
     });
   }
 
