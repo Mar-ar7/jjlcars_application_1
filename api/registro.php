@@ -104,12 +104,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $tipo = "error";
              // No redirigir aquí
         }
-
-        $stmt->close();
     }
 
-    $stmt_verificar->close();
-    $conn->close(); // Close connection after use
+    // Remove any remaining incorrect close() calls on PDO statements or connection
+    // if (isset($stmt) && $stmt instanceof PDOStatement) { $stmt->close(); } // Incorrect, ensure removed
+    // if (isset($stmt_verificar) && $stmt_verificar instanceof PDOStatement) { $stmt_verificar->close(); } // Incorrect, ensure removed
+    // if (isset($conn) && $conn instanceof PDO) { $conn->close(); } // Incorrect, ensure removed
 
     // Prepare the JSON response based on the registration result
     $response = [
