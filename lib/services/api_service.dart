@@ -5,6 +5,31 @@ import '../models/vehiculo.dart';
 import '../models/usuario.dart';
 import '../models/cita.dart';
 
+// Define a data model for Cita Statistics
+class CitaStats {
+  final Map<String, int> counts;
+  final double totalRevenue;
+
+  CitaStats({
+    required this.counts,
+    required this.totalRevenue,
+  });
+
+  factory CitaStats.fromJson(Map<String, dynamic> json) {
+    Map<String, int> counts = {};
+    if (json['counts'] != null) {
+      (json['counts'] as Map<String, dynamic>).forEach((key, value) {
+        counts[key] = int.tryParse(value.toString()) ?? 0;
+      });
+    }
+    final totalRevenue = double.tryParse(json['totalRevenue'].toString()) ?? 0.0;
+
+    return CitaStats(
+      counts: counts,
+      totalRevenue: totalRevenue,
+    );
+  }
+}
 
 class ApiService {
   final String baseUrl = ApiConfig.baseUrl;
@@ -214,6 +239,91 @@ class ApiService {
       'nombre': nombre,
       'new_password': newPassword,
     });
+  }
+
+  // Get Cita Statistics
+  Future<CitaStats> getCitaStats() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/citas_stats.php'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final decoded = json.decode(response.body);
+
+        if (decoded['success'] == true && decoded['data'] != null) {
+          // Use the new CitaStats model
+          return CitaStats.fromJson(decoded['data']);
+        } else {
+          throw Exception(decoded['message'] ?? 'Error desconocido al obtener estadísticas de citas');
+        }
+      } else {
+        throw Exception('Error del servidor al obtener estadísticas de citas: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error de conexión al obtener estadísticas de citas: $e');
+    }
+  }
+
+  // Get Client Statistics
+  Future<int> getClientStats() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/clientes_stats.php'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final decoded = json.decode(response.body);
+
+        if (decoded['success'] == true && decoded['data'] != null && decoded['data']['totalClientes'] != null) {
+          // The backend returns count as string, convert it to int
+          return int.tryParse(decoded['data']['totalClientes'].toString()) ?? 0;
+        } else {
+          throw Exception(decoded['message'] ?? 'Error desconocido al obtener estadísticas de clientes');
+        }
+      } else {
+        throw Exception('Error del servidor al obtener estadísticas de clientes: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error de conexión al obtener estadísticas de clientes: $e');
+    }
+  }
+
+  // Get Vehicle Statistics
+  Future<int> getVehiculoStats() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/vehiculos_stats.php'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final decoded = json.decode(response.body);
+
+        if (decoded['success'] == true && decoded['data'] != null && decoded['data']['totalVehiculos'] != null) {
+          // The backend returns count as string, convert it to int
+          return int.tryParse(decoded['data']['totalVehiculos'].toString()) ?? 0;
+        } else {
+          throw Exception(decoded['message'] ?? 'Error desconocido al obtener estadísticas de vehículos');
+        }
+      }
+       else {
+        throw Exception('Error del servidor al obtener estadísticas de vehículos: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error de conexión al obtener estadísticas de vehículos: $e');
+    }
   }
 
   // Aquí puedes agregar más métodos según necesites

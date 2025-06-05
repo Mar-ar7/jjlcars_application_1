@@ -7,6 +7,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
 import 'dart:io';
+import 'package:syncfusion_flutter_charts/charts.dart';
+import '../services/api_service.dart';
 
 class HomeScreen extends StatefulWidget {
   final Map<String, dynamic> userData;
@@ -17,14 +19,62 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   List<Map<String, dynamic>> empleados = [];
   bool isLoading = true;
+
+  CitaStats? _citaStats;
+  bool _isLoadingCitaStats = true;
+  String? _citaStatsError;
+
+  int _totalClientes = 0;
+  bool _isLoadingClientStats = true;
+  String? _clientStatsError;
+
+  int _totalVehiculos = 0;
+  bool _isLoadingVehiculoStats = true;
+  String? _vehiculoStatsError;
+
+  final ApiService _apiService = ApiService();
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     cargarEmpleados();
+    _loadAllStats();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _loadAllStats();
+    }
+  }
+
+  Future<void> _loadAllStats() async {
+    setState(() {
+      _isLoadingCitaStats = true;
+      _citaStatsError = null;
+      _isLoadingClientStats = true;
+      _clientStatsError = null;
+      _isLoadingVehiculoStats = true;
+      _vehiculoStatsError = null;
+    });
+
+    await Future.wait([
+      _loadCitaStats(),
+      _loadClientStats(),
+      _loadVehiculoStats(),
+    ]).catchError((e) {
+      print('Error loading all stats: $e');
+    });
   }
 
   Future<void> cargarEmpleados() async {
@@ -104,6 +154,133 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  Future<void> _loadCitaStats() async {
+    try {
+      final response = await http.get(
+        Uri.parse('http://10.0.2.2/jjlcars/api/obtener_estadisticas_citas.php'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+      ).timeout(
+        const Duration(seconds: 10),
+        onTimeout: () {
+          throw TimeoutException('La conexión tardó demasiado tiempo');
+        },
+      );
+
+      if (response.statusCode == 200) {
+        // Imprimir la respuesta para debug
+        print('Respuesta del servidor: ${response.body}');
+        
+        if (response.body.isEmpty) {
+          setState(() {
+            _citaStats = null;
+            _isLoadingCitaStats = false;
+          });
+          return;
+        }
+
+        try {
+          final Map<String, dynamic> data = json.decode(response.body);
+          setState(() {
+            _citaStats = CitaStats.fromJson(data);
+            _isLoadingCitaStats = false;
+          });
+        } catch (e) {
+          print('Error al decodificar JSON: $e');
+          print('Respuesta recibida: ${response.body}');
+          throw FormatException('Error en el formato de la respuesta del servidor');
+        }
+      } else {
+        throw Exception('Error del servidor: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error en _loadCitaStats: $e');
+      setState(() {
+        _isLoadingCitaStats = false;
+      });
+      
+      String errorMessage = 'Error al cargar estadísticas de citas';
+      if (e is TimeoutException) {
+        errorMessage = 'La conexión tardó demasiado tiempo. Intenta de nuevo.';
+      } else if (e is SocketException) {
+        errorMessage = 'No se pudo conectar al servidor. Verifica tu conexión.';
+      } else if (e is FormatException) {
+        errorMessage = 'Error en el formato de la respuesta del servidor.';
+      }
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
+            duration: const Duration(seconds: 3),
+            action: SnackBarAction(
+              label: 'Reintentar',
+              onPressed: () {
+                _loadCitaStats();
+              },
+            ),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _loadClientStats() async {
+    setState(() {
+      _isLoadingClientStats = true;
+      _clientStatsError = null;
+    });
+    try {
+      final totalClientes = await _apiService.getClientStats();
+      setState(() {
+        _totalClientes = totalClientes;
+        _isLoadingClientStats = false;
+      });
+    } catch (e) {
+      setState(() {
+        _clientStatsError = e.toString();
+        _isLoadingClientStats = false;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al cargar estadísticas de clientes: ${e.toString()}'),
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _loadVehiculoStats() async {
+    setState(() {
+      _isLoadingVehiculoStats = true;
+      _vehiculoStatsError = null;
+    });
+    try {
+      final totalVehiculos = await _apiService.getVehiculoStats();
+      setState(() {
+        _totalVehiculos = totalVehiculos;
+        _isLoadingVehiculoStats = false;
+      });
+    } catch (e) {
+      setState(() {
+        _vehiculoStatsError = e.toString();
+        _isLoadingVehiculoStats = false;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al cargar estadísticas de vehículos: ${e.toString()}'),
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -174,99 +351,216 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildStatistics() {
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          child: Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.red.shade400,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Icon(
-                          Icons.favorite,
-                          color: Colors.white,
-                          size: 24,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      const Text(
-                        '75%',
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
+        Text(
+          'Estadísticas Generales',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 16),
+        // Citas Chart
+        Card(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
+          elevation: 4,
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Estadísticas de Citas',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Reliability num.',
-                    style: TextStyle(
-                      color: AppColors.textSecondary,
-                      fontSize: 14,
-                    ),
-                  ),
-                ],
-              ),
+                ),
+                const SizedBox(height: 16),
+                _isLoadingCitaStats
+                    ? Center(child: CircularProgressIndicator())
+                    : _citaStatsError != null
+                        ? Center(child: Text('Error al cargar estadísticas de citas: $_citaStatsError'))
+                        : Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildCitaStatsChart(),
+                              const SizedBox(height: 16),
+                              Text(
+                                'Ingresos por Citas Aprobadas: \${_citaStats?.totalRevenue.toStringAsFixed(2) ?? 'N/A'}',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.green[700],
+                                ),
+                              ),
+                            ],
+                          ),
+              ],
             ),
           ),
         ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
+        const SizedBox(height: 16),
+        // Clients and Vehicles Stats
+        Row(
+          children: [
+            Expanded(
+              child: Card(
+                 shape: RoundedRectangleBorder(
+                   borderRadius: BorderRadius.circular(15),
+                 ),
+                elevation: 4,
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.green.shade400,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Icon(
-                          Icons.thumb_up,
-                          color: Colors.white,
-                          size: 24,
-                        ),
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.blue.shade400,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(
+                              Icons.people_alt_outlined,
+                              color: Colors.white,
+                              size: 24,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          _isLoadingClientStats
+                              ? CircularProgressIndicator()
+                              : _clientStatsError != null
+                                  ? Text('Error')
+                                  : Text(
+                                      '$_totalClientes',
+                                      style: TextStyle(
+                                        fontSize: 24,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                        ],
                       ),
-                      const SizedBox(width: 12),
-                      const Text(
-                        '97%',
+                      const SizedBox(height: 8),
+                      Text(
+                        'Total Clientes',
                         style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
+                          color: Colors.grey[600],
+                          fontSize: 14,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Owner satisfaction',
-                    style: TextStyle(
-                      color: AppColors.textSecondary,
-                      fontSize: 14,
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
-          ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Card(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                elevation: 4,
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.green.shade400,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(
+                              Icons.directions_car_outlined,
+                              color: Colors.white,
+                              size: 24,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                           _isLoadingVehiculoStats
+                              ? CircularProgressIndicator()
+                              : _vehiculoStatsError != null
+                                  ? Text('Error')
+                                  : Text(
+                                      '$_totalVehiculos',
+                                      style: TextStyle(
+                                        fontSize: 24,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Total Vehículos',
+                        style: TextStyle(
+                          color: Colors.grey[600],
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ],
     );
+  }
+
+  Widget _buildCitaStatsChart() {
+    // Data model for the chart
+    final List<CitaData> chartData = _citaStats?.entries.map((entry) {
+      // Map states from backend to more user-friendly labels if needed
+      String label = entry.key;
+      switch (entry.key) {
+        case 'aprobada':
+          label = 'Aprobadas';
+          break;
+        case 'pendiente':
+          label = 'Pendientes';
+          break;
+        case 'cancelada':
+          label = 'Canceladas';
+          break;
+      }
+      return CitaData(label, entry.value);
+    }).toList() ?? [];
+
+    return SfCircularChart(
+      series: <CircularSeries>[ // Use CircularSeries for pie/doughnut charts
+        PieSeries<CitaData, String>(
+          dataSource: chartData,
+          pointColorMapper:(CitaData data, _) => data.color, // Optional: Assign colors
+          xValueMapper: (CitaData data, _) => data.state,
+          yValueMapper: (CitaData data, _) => data.count,
+          dataLabelSettings: DataLabelSettings(isVisible: true),
+          enableTooltip: true,
+        ),
+      ],
+      // Optional: Add title and legend
+      // title: ChartTitle(text: 'Estadísticas de Citas'),
+      legend: Legend(isVisible: true),
+    );
+  }
+
+  // Define a simple data class for the chart
+  class CitaData {
+    CitaData(this.state, this.count, [this.color]);
+    final String state;
+    final int count;
+    final Color? color;
   }
 
   Widget _buildActivityChart() {
