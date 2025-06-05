@@ -10,6 +10,7 @@ import 'screens/ventas_screen.dart';
 import 'screens/empleados_screen.dart';
 import 'screens/marcas_screen.dart';
 import 'screens/proyecciones_screen.dart';
+import 'screens/reset_password_screen.dart';
 
 final Map<String, WidgetBuilder> routes = {
   '/': (context) => const LoginScreen(),
@@ -29,6 +30,7 @@ final Map<String, WidgetBuilder> routes = {
   '/empleados': (context) => EmpleadosScreen(),
   '/marcas': (context) => MarcasScreen(),
   '/proyecciones': (context) => ProyeccionesScreen(),
+  '/resetPassword': (context) => const ResetPasswordScreen(),
   // Aquí agregaremos más rutas conforme creemos las pantallas
 };
 

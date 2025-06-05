@@ -15,6 +15,9 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isLoading = false;
   String? _errorMessage;
 
+  // Add state variable for password visibility
+  bool _isPasswordVisible = false;
+
   final ApiService _apiService = ApiService();
 
   Future<void> _login() async {
@@ -114,8 +117,19 @@ class _LoginScreenState extends State<LoginScreen> {
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
+                            // Add suffix icon to toggle password visibility
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _isPasswordVisible = !_isPasswordVisible;
+                                });
+                              },
+                            ),
                           ),
-                          obscureText: true,
+                          obscureText: !_isPasswordVisible, // Use state variable here
                           validator: (value) {
                             if (value == null || value.isEmpty) {
                               return 'Por favor ingrese su contraseña';
@@ -163,6 +177,17 @@ class _LoginScreenState extends State<LoginScreen> {
                           },
                           child: const Text(
                             '¿No tienes cuenta? Regístrate',
+                            style: TextStyle(color: Color(0xFF1565C0)),
+                          ),
+                        ),
+                        // Add Forgot Password button/link
+                        TextButton(
+                          onPressed: () {
+                            // Navigate to the Forgot Password screen
+                            Navigator.pushNamed(context, '/resetPassword'); // Assuming a route named '/resetPassword'
+                          },
+                          child: const Text(
+                            '¿Olvidaste tu contraseña?',
                             style: TextStyle(color: Color(0xFF1565C0)),
                           ),
                         ),
