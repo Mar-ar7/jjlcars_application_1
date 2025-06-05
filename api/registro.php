@@ -80,30 +80,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // Validar si el nombre de usuario ya existe
     $verificar_sql = "SELECT * FROM Usuarios WHERE Usuario = ?";
-    // Ensure connection is valid before preparing statement
-    if ($conn === null) {
-         error_log("Database connection is null before preparing statement in registro.php");
-         http_response_code(500);
-         echo json_encode([
-             'success' => false,
-             'message' => 'Error interno del servidor'
-         ]);
-         exit();
-    }
-
     $stmt_verificar = $conn->prepare($verificar_sql);
-    $stmt_verificar->bind_param("s", $usuario);
-    $stmt_verificar->execute();
-    $resultado = $stmt_verificar->get_result();
+    $stmt_verificar->execute([$usuario]);
 
-    if ($resultado->num_rows > 0) {
+    // Check if a row was returned (user exists)
+    $user_exists = $stmt_verificar->fetch();
+
+    if ($user_exists) {
         $mensaje = "❌ El nombre de usuario ya está registrado. Intenta con otro.";
         $tipo = "error";
         // No redirigir aquí, solo preparar la respuesta JSON
     } else {
         $sql = "INSERT INTO Usuarios (Usuario, Nombre, password, TipoUsuario) VALUES (?, ?, ?, ?)";
         $stmt = $conn->prepare($sql);
-        $stmt->bind_param("ssss", $usuario, $nombre, $hashed_password, $tipoUsuario);
+        $stmt->execute([$usuario, $nombre, $hashed_password, $tipoUsuario]);
 
         if ($stmt->execute()) {
             $mensaje = "¡Registro exitoso! Ahora puedes iniciar sesión.";
