@@ -353,7 +353,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                               _buildCitaStatsChart(),
                               const SizedBox(height: 16),
                               Text(
-                                'Ingresos por Citas Aprobadas: \${_citaStats?.totalRevenue.toStringAsFixed(2) ?? 'N/A'}',
+                                'Ingresos por Citas Aprobadas: \${_citaStats?.totalRevenue.toStringAsFixed(2) ?? \'0.00\'}',
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
