@@ -96,12 +96,13 @@ class ApiService {
     required String nombre,
     required String usuario,
     required String password,
+    required String tipoUsuario,
   }) async {
     return postData('registro.php', {
       'Nombre': nombre,
       'Usuario': usuario,
       'password': password,
-      'TipoUsuario': 'Usuario', // Por defecto
+      'TipoUsuario': tipoUsuario,
     });
   }
 
@@ -204,11 +205,13 @@ class ApiService {
 
   // Restablecer contraseña con token
   Future<Map<String, dynamic>> resetPassword({
-    required String token,
+    required String usuario,
+    required String nombre,
     required String newPassword,
   }) async {
     return postData('reset_password.php', {
-      'token': token,
+      'usuario': usuario,
+      'nombre': nombre,
       'new_password': newPassword,
     });
   }
