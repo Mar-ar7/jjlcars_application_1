@@ -93,23 +93,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     } else {
         $sql = "INSERT INTO Usuarios (Usuario, Nombre, password, TipoUsuario) VALUES (?, ?, ?, ?)";
         $stmt = $conn->prepare($sql);
+        
+        // Execute the insert query (PDO method: pass parameters in an array to execute())
+        // With PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, this will throw an exception on failure
         $stmt->execute([$usuario, $nombre, $hashed_password, $tipoUsuario]);
 
-        if ($stmt->execute()) {
-            $mensaje = "¡Registro exitoso! Ahora puedes iniciar sesión.";
-            $tipo = "success";
-             // No redirigir aquí
-        } else {
-            $mensaje = "Error al registrar: " . $stmt->error;
-            $tipo = "error";
-             // No redirigir aquí
-        }
-    }
+        // If execution reaches here, the insert was successful (no exception was thrown)
+        $mensaje = "¡Registro exitoso! Ahora puedes iniciar sesión.";
+        $tipo = "success";
 
-    // Remove any remaining incorrect close() calls on PDO statements or connection
-    // if (isset($stmt) && $stmt instanceof PDOStatement) { $stmt->close(); } // Incorrect, ensure removed
-    // if (isset($stmt_verificar) && $stmt_verificar instanceof PDOStatement) { $stmt_verificar->close(); } // Incorrect, ensure removed
-    // if (isset($conn) && $conn instanceof PDO) { $conn->close(); } // Incorrect, ensure removed
+        // No need for the if/else block checking $stmt->execute() again or $stmt->error
+        // The success/error handling is done by the outer try-catch block
+    }
 
     // Prepare the JSON response based on the registration result
     $response = [
