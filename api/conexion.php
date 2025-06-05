@@ -1,6 +1,9 @@
 ﻿<?php
 error_reporting(E_ALL);
-ini_set('display_errors', 1);
+// Disable displaying errors and log them instead for API endpoints
+ini_set('display_errors', 0);
+ini_set('log_errors', 1);
+ini_set('error_log', __DIR__ . '/php-error.log'); // Ensure this file is writable by the web server process
 
 class Conexion {
     private static $host = 'localhost';
