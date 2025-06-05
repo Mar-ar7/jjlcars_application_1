@@ -10,6 +10,14 @@ import 'dart:io';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import '../services/api_service.dart';
 
+// Define a simple data class for the chart (Ensuring it's at the top level)
+class CitaData {
+  CitaData(this.state, this.count, [this.color]);
+  final String state;
+  final int count;
+  final Color? color;
+}
+
 class HomeScreen extends StatefulWidget {
   final Map<String, dynamic> userData;
 
@@ -23,7 +31,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   List<Map<String, dynamic>> empleados = [];
   bool isLoading = true;
 
-  CitaStats? _citaStats;
+  // State variables for cita statistics
+  CitaStats? _citaStats; // Now holds CitaStats object
   bool _isLoadingCitaStats = true;
   String? _citaStatsError;
 
@@ -53,6 +62,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Reload stats when returning to the app if it was inactive or paused
     if (state == AppLifecycleState.resumed) {
       _loadAllStats();
     }
@@ -68,12 +78,14 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       _vehiculoStatsError = null;
     });
 
+    // Use Future.wait to load all stats concurrently
     await Future.wait([
       _loadCitaStats(),
       _loadClientStats(),
       _loadVehiculoStats(),
-    ]).catchError((e) {
-      print('Error loading all stats: $e');
+    ]).catchError((e) { // Catch errors from Future.wait
+       print('Error loading all stats: $e');
+       // Individual error handling is done in each load method
     });
   }
 
@@ -156,71 +168,21 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   Future<void> _loadCitaStats() async {
     try {
-      final response = await http.get(
-        Uri.parse('http://10.0.2.2/jjlcars/api/obtener_estadisticas_citas.php'),
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
-      ).timeout(
-        const Duration(seconds: 10),
-        onTimeout: () {
-          throw TimeoutException('La conexión tardó demasiado tiempo');
-        },
-      );
-
-      if (response.statusCode == 200) {
-        // Imprimir la respuesta para debug
-        print('Respuesta del servidor: ${response.body}');
-        
-        if (response.body.isEmpty) {
-          setState(() {
-            _citaStats = null;
-            _isLoadingCitaStats = false;
-          });
-          return;
-        }
-
-        try {
-          final Map<String, dynamic> data = json.decode(response.body);
-          setState(() {
-            _citaStats = CitaStats.fromJson(data);
-            _isLoadingCitaStats = false;
-          });
-        } catch (e) {
-          print('Error al decodificar JSON: $e');
-          print('Respuesta recibida: ${response.body}');
-          throw FormatException('Error en el formato de la respuesta del servidor');
-        }
-      } else {
-        throw Exception('Error del servidor: ${response.statusCode}');
-      }
-    } catch (e) {
-      print('Error en _loadCitaStats: $e');
+      final response = await _apiService.getCitaStats(); // Use ApiService method
       setState(() {
+        _citaStats = response;
         _isLoadingCitaStats = false;
       });
-      
-      String errorMessage = 'Error al cargar estadísticas de citas';
-      if (e is TimeoutException) {
-        errorMessage = 'La conexión tardó demasiado tiempo. Intenta de nuevo.';
-      } else if (e is SocketException) {
-        errorMessage = 'No se pudo conectar al servidor. Verifica tu conexión.';
-      } else if (e is FormatException) {
-        errorMessage = 'Error en el formato de la respuesta del servidor.';
-      }
-      
+    } catch (e) {
+      setState(() {
+        _citaStatsError = e.toString();
+        _isLoadingCitaStats = false;
+      });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(errorMessage),
+            content: Text('Error al cargar estadísticas de citas: ${e.toString()}'),
             duration: const Duration(seconds: 3),
-            action: SnackBarAction(
-              label: 'Reintentar',
-              onPressed: () {
-                _loadCitaStats();
-              },
-            ),
           ),
         );
       }
@@ -299,7 +261,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       ),
       drawer: const CustomDrawer(),
       body: RefreshIndicator(
-        onRefresh: cargarEmpleados,
+        onRefresh: _loadAllStats, // Refresh all stats on pull down
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
           child: Column(
@@ -521,28 +483,38 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   Widget _buildCitaStatsChart() {
     // Data model for the chart
-    final List<CitaData> chartData = _citaStats?.entries.map((entry) {
+    // Ensure _citaStats and its counts are not null before accessing entries
+    if (_citaStats?.counts == null || _citaStats!.counts.isEmpty) {
+        return Center(child: Text('No hay datos de citas para mostrar'));
+    }
+    
+    final List<CitaData> chartData = _citaStats!.counts.entries.map((entry) {
       // Map states from backend to more user-friendly labels if needed
       String label = entry.key;
+      Color color = Colors.blue; // Default color
+
       switch (entry.key) {
         case 'aprobada':
           label = 'Aprobadas';
+          color = Colors.green;
           break;
         case 'pendiente':
           label = 'Pendientes';
+          color = Colors.orange;
           break;
         case 'cancelada':
           label = 'Canceladas';
+          color = Colors.red;
           break;
       }
-      return CitaData(label, entry.value);
-    }).toList() ?? [];
+      return CitaData(label, entry.value, color);
+    }).toList();
 
     return SfCircularChart(
       series: <CircularSeries>[ // Use CircularSeries for pie/doughnut charts
         PieSeries<CitaData, String>(
           dataSource: chartData,
-          pointColorMapper:(CitaData data, _) => data.color, // Optional: Assign colors
+          pointColorMapper:(CitaData data, _) => data.color,
           xValueMapper: (CitaData data, _) => data.state,
           yValueMapper: (CitaData data, _) => data.count,
           dataLabelSettings: DataLabelSettings(isVisible: true),
@@ -553,14 +525,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       // title: ChartTitle(text: 'Estadísticas de Citas'),
       legend: Legend(isVisible: true),
     );
-  }
-
-  // Define a simple data class for the chart
-  class CitaData {
-    CitaData(this.state, this.count, [this.color]);
-    final String state;
-    final int count;
-    final Color? color;
   }
 
   Widget _buildActivityChart() {
