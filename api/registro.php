@@ -3,7 +3,7 @@ session_start();
 include('conexion.php');
 
 // Disable displaying errors and log them instead for API endpoints
-ini_set('display_errors', 0);
+ini_set('display_errors', 1); // Temporarily enable displaying errors for debugging
 ini_set('log_errors', 1);
 ini_set('error_log', __DIR__ . '/php-error.log'); // Ensure this file is writable by the web server process
 error_reporting(E_ALL);
@@ -16,14 +16,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $usuario = $_POST['usuario'];
     $nombre = $_POST['nombre'];
     $password = $_POST['password'];
-    // $tipoUsuario = "Usuario"; // Tipo fijo - REMOVED
 
     // Get TipoUsuario from POST data and validate
     $allowedUserTypes = ['Usuario', 'Vendedor', 'Gerente', 'Administrador'];
-    $tipoUsuario = $_POST['tipoUsuario'] ?? ''; // Get type from POST, default to empty
+    $tipoUsuario = $_POST['tipoUsuario'] ?? '';
 
     if (!in_array($tipoUsuario, $allowedUserTypes)) {
-        // Default to 'Usuario' if the provided type is invalid or missing
         $tipoUsuario = 'Usuario';
          error_log("Invalid TipoUsuario received during registration: " . ($_POST['tipoUsuario'] ?? '[not provided]') . ". Defaulting to 'Usuario'.");
     }
@@ -41,7 +39,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if ($resultado->num_rows > 0) {
         $mensaje = "❌ El nombre de usuario ya está registrado. Intenta con otro.";
         $tipo = "error";
-        $redirigir = "registro.php";
+        // No redirigir aquí, solo preparar la respuesta JSON
     } else {
         $sql = "INSERT INTO Usuarios (Usuario, Nombre, password, TipoUsuario) VALUES (?, ?, ?, ?)";
         $stmt = $conn->prepare($sql);
@@ -50,28 +48,28 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if ($stmt->execute()) {
             $mensaje = "¡Registro exitoso! Ahora puedes iniciar sesión.";
             $tipo = "success";
-            $redirigir = "login.php";
+             // No redirigir aquí
         } else {
             $mensaje = "Error al registrar: " . $stmt->error;
             $tipo = "error";
-            $redirigir = "registro.php";
+             // No redirigir aquí
         }
 
         $stmt->close();
-
-        // Prepare the JSON response based on the registration result
-        $response = [
-            'success' => ($tipo === "success"),
-            'message' => $mensaje,
-        ];
-
-        // Output JSON and terminate script
-        echo json_encode($response);
-        exit(); // Stop further execution (prevents HTML output)
     }
 
     $stmt_verificar->close();
-    $conn->close();
+    $conn->close(); // Close connection after use
+
+    // Prepare the JSON response based on the registration result
+    $response = [
+        'success' => ($tipo === "success"),
+        'message' => $mensaje,
+    ];
+
+    // Output JSON and terminate script
+    echo json_encode($response);
+    exit(); // Stop further execution (prevents HTML output)
 }
 
 // The following HTML and script will only be processed if the request method is NOT POST (e.g., GET from a browser)
@@ -135,7 +133,7 @@ function mostrarClaveAdmin() {
         icon: '<?php echo $tipo; ?>',
         confirmButtonText: 'Aceptar'
     }).then(() => {
-        window.location.href = '<?php echo $redirigir; ?>';
+        window.location.href = '<?php echo $redirigir; ?>'; // This part is for direct access, not API
     });
 </script>
 <?php endif; ?>
