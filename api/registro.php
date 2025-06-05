@@ -52,14 +52,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
 
         $stmt->close();
+
+        // Prepare the JSON response based on the registration result
+        $response = [
+            'success' => ($tipo === "success"),
+            'message' => $mensaje,
+        ];
+
+        // Output JSON and terminate script
+        echo json_encode($response);
+        exit(); // Stop further execution (prevents HTML output)
     }
 
     $stmt_verificar->close();
     $conn->close();
 }
+
+// The following HTML and script will only be processed if the request method is NOT POST (e.g., GET from a browser)
 ?>
-
-
 
 <!DOCTYPE html>
 <html lang="es">
