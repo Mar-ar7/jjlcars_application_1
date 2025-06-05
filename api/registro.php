@@ -3,9 +3,9 @@ session_start();
 include('conexion.php');
 
 // Disable displaying errors and log them instead for API endpoints
-ini_set('display_errors', 1); // Temporarily enable displaying errors for debugging
+ini_set('display_errors', 1); // Temporarily enabled for debugging. REMEMBER TO CHANGE BACK TO 0!
 ini_set('log_errors', 1);
-ini_set('error_log', __DIR__ . '/php-error.log'); // Ensure this file is writable by the web server process
+ini_set('error_log', __DIR__ . '/php-error.log');
 error_reporting(E_ALL);
 
 $mensaje = "";
@@ -13,24 +13,84 @@ $tipo = "";
 $redirigir = "";
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $usuario = $_POST['usuario'];
-    $nombre = $_POST['nombre'];
-    $password = $_POST['password'];
+    // Read and decode JSON input
+    $input = file_get_contents('php://input');
+    $data = json_decode($input, true);
 
-    // Get TipoUsuario from POST data and validate
+    // Check if JSON decoding was successful and data exists
+    if ($data === null) {
+        // Log and return error if JSON is invalid
+        error_log("Invalid JSON received in registro.php: " . $input);
+        http_response_code(400); // Bad Request
+        echo json_encode([
+            'success' => false,
+            'message' => 'Datos recibidos inválidos (JSON no válido)'
+        ]);
+        exit();
+    }
+
+    // Get data from the decoded JSON
+    $usuario = $data['usuario'] ?? null;
+    $nombre = $data['nombre'] ?? null;
+    $password = $data['password'] ?? null;
+    $tipoUsuario = $data['tipoUsuario'] ?? null;
+
+    // Validate required fields
+    if (empty($usuario) || empty($nombre) || empty($password) || empty($tipoUsuario)) {
+         // Log missing data and return error
+        error_log("Missing data in registro.php. Received: " . print_r($data, true));
+        http_response_code(400); // Bad Request
+        echo json_encode([
+            'success' => false,
+            'message' => 'Faltan datos requeridos (usuario, nombre, contraseña, tipoUsuario)'
+        ]);
+        exit();
+    }
+
+    // $tipoUsuario = "Usuario"; // Tipo fijo - REMOVED (already handled by getting from JSON)
+
+    // Get TipoUsuario from POST data and validate - Logic already updated to use $data
     $allowedUserTypes = ['Usuario', 'Vendedor', 'Gerente', 'Administrador'];
-    $tipoUsuario = $_POST['tipoUsuario'] ?? '';
+    // $tipoUsuario = $_POST['tipoUsuario'] ?? ''; // Get type from POST, default to empty - REMOVED
 
     if (!in_array($tipoUsuario, $allowedUserTypes)) {
+        // Default to 'Usuario' if the provided type is invalid or missing
         $tipoUsuario = 'Usuario';
-         error_log("Invalid TipoUsuario received during registration: " . ($_POST['tipoUsuario'] ?? '[not provided]') . ". Defaulting to 'Usuario'.");
+         error_log("Invalid TipoUsuario received during registration: " . $tipoUsuario . ". Defaulting to 'Usuario'.");
     }
 
     // Hash de la contraseña antes de almacenarla
-    $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+    // Ensure password is a string before hashing
+    $hashed_password = password_hash((string)$password, PASSWORD_DEFAULT);
+
+    // Get database connection using obtenerConexion function
+    try {
+         $conn = obtenerConexion();
+    } catch (Exception $e) {
+         // If connection fails, log and return error (obtenerConexion already handles JSON output)
+         // The exception will be caught by the outer try-catch if not handled in obtenerConexion
+         error_log("Database connection failed in registro.php: " . $e->getMessage());
+         http_response_code(500);
+         echo json_encode([
+             'success' => false,
+             'message' => 'Error interno del servidor (conexión a BD fallida)'
+         ]);
+         exit();
+    }
 
     // Validar si el nombre de usuario ya existe
     $verificar_sql = "SELECT * FROM Usuarios WHERE Usuario = ?";
+    // Ensure connection is valid before preparing statement
+    if ($conn === null) {
+         error_log("Database connection is null before preparing statement in registro.php");
+         http_response_code(500);
+         echo json_encode([
+             'success' => false,
+             'message' => 'Error interno del servidor'
+         ]);
+         exit();
+    }
+
     $stmt_verificar = $conn->prepare($verificar_sql);
     $stmt_verificar->bind_param("s", $usuario);
     $stmt_verificar->execute();
@@ -72,6 +132,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     exit(); // Stop further execution (prevents HTML output)
 }
 
+// Handle GET requests or other methods (optional - currently shows HTML form)
 // The following HTML and script will only be processed if the request method is NOT POST (e.g., GET from a browser)
 ?>
 
