@@ -35,4 +35,41 @@ class ClienteService {
       rethrow;
     }
   }
+
+  Future<Cliente> crearCliente(Map<String, String> fields) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/crear_cliente.php'),
+      body: fields,
+    );
+    final data = json.decode(response.body);
+    if (data['success'] == true && data['cliente'] != null) {
+      return Cliente.fromJson(data['cliente']);
+    } else {
+      throw Exception(data['error'] ?? 'Error al crear cliente');
+    }
+  }
+
+  Future<Cliente> actualizarCliente(Map<String, String> fields) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/actualizar_cliente.php'),
+      body: fields,
+    );
+    final data = json.decode(response.body);
+    if (data['success'] == true && data['cliente'] != null) {
+      return Cliente.fromJson(data['cliente']);
+    } else {
+      throw Exception(data['error'] ?? 'Error al actualizar cliente');
+    }
+  }
+
+  Future<void> eliminarCliente(int id) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/eliminar_cliente.php'),
+      body: {'id': id.toString()},
+    );
+    final data = json.decode(response.body);
+    if (data['success'] != true) {
+      throw Exception(data['error'] ?? 'Error al eliminar cliente');
+    }
+  }
 }
