@@ -47,6 +47,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   bool _isLoadingVehiculosMarca = true;
   String? _vehiculosMarcaError;
 
+  Map<String, Map<String, double>> _citasPorTipoYMes = {};
+  bool _isLoadingCitasPorTipo = true;
+  String? _citasPorTipoError;
+
   final ApiService _apiService = ApiService();
 
   @override
@@ -56,6 +60,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     cargarEmpleados();
     _loadAllStats();
     _loadVehiculosPorMarca();
+    _loadCitasPorTipoYMes();
   }
 
   @override
@@ -281,6 +286,45 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     }
   }
 
+  Future<void> _loadCitasPorTipoYMes() async {
+    setState(() {
+      _isLoadingCitasPorTipo = true;
+      _citasPorTipoError = null;
+    });
+    try {
+      final response = await http.get(
+        Uri.parse('http://10.0.2.2/jjlcars_application_1/api/citas_por_tipo_mes.php'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+      );
+      if (response.statusCode == 200) {
+        final decoded = json.decode(response.body);
+        if (decoded['success'] == true && decoded['data'] != null) {
+          setState(() {
+            _citasPorTipoYMes = Map<String, Map<String, double>>.from(
+              (decoded['data'] as Map<String, dynamic>).map((mes, tipos) => MapEntry(
+                mes,
+                Map<String, double>.from((tipos as Map<String, dynamic>).map((tipo, monto) => MapEntry(tipo, (monto as num).toDouble()))),
+              )),
+            );
+            _isLoadingCitasPorTipo = false;
+          });
+        } else {
+          throw Exception(decoded['message'] ?? 'Error desconocido al obtener proyección de ventas');
+        }
+      } else {
+        throw Exception('Error del servidor: ${response.statusCode}');
+      }
+    } catch (e) {
+      setState(() {
+        _citasPorTipoError = e.toString();
+        _isLoadingCitasPorTipo = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -360,7 +404,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           ),
         ),
         const SizedBox(height: 16),
-        // Gráfica de Citas
+        // Gráfica de Proyección de Ventas por Categoría
         Card(
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(15),
@@ -372,38 +416,35 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Estadísticas de Citas',
+                  'Proyección de Ventas por Categoría',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 const SizedBox(height: 16),
-                _isLoadingCitaStats
+                _isLoadingCitasPorTipo
                     ? Center(child: CircularProgressIndicator())
-                    : _citaStatsError != null
-                        ? Center(child: Text('Error al cargar estadísticas de citas: $_citaStatsError'))
-                        : Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              _buildCitaStatsChart(),
-                              const SizedBox(height: 16),
-                              Text(
-                                'Ingresos por Citas Aprobadas: Q${_citaStats?.totalRevenue.toStringAsFixed(2) ?? '0.00'}',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.green[700],
+                    : _citasPorTipoError != null
+                        ? Center(child: Text('Error al cargar proyección: $_citasPorTipoError'))
+                        : _citasPorTipoYMes.isEmpty
+                            ? Center(child: Text('No hay datos de ventas para mostrar'))
+                            : SfCartesianChart(
+                                primaryXAxis: CategoryAxis(title: AxisTitle(text: 'Mes')),
+                                primaryYAxis: NumericAxis(
+                                  title: AxisTitle(text: 'Ventas en USD'),
+                                  numberFormat: NumberFormat.simpleCurrency(name: 'USD'),
                                 ),
+                                legend: Legend(isVisible: true, position: LegendPosition.top),
+                                title: ChartTitle(text: 'Proyección de Ventas por Categoría'),
+                                series: _buildBarSeriesCitasPorTipo(),
                               ),
-                            ],
-                          ),
               ],
             ),
           ),
         ),
         const SizedBox(height: 16),
-        // Gráfica de Vehículos por Marca
+        // Gráfica de Vehículos por Marca (Barras)
         Card(
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(15),
@@ -428,17 +469,18 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         ? Center(child: Text('Error al cargar vehículos: $_vehiculosMarcaError'))
                         : _vehiculosPorMarca.isEmpty
                             ? Center(child: Text('No hay datos de vehículos para mostrar'))
-                            : SfCircularChart(
-                                title: ChartTitle(text: ''),
-                                legend: Legend(isVisible: true, position: LegendPosition.bottom),
-                                series: <CircularSeries<
+                            : SfCartesianChart(
+                                primaryXAxis: CategoryAxis(title: AxisTitle(text: 'Marca')),
+                                primaryYAxis: NumericAxis(title: AxisTitle(text: 'Cantidad')),
+                                title: ChartTitle(text: 'Inventario de Vehículos por Marca'),
+                                series: <ChartSeries<
                                     Map<String, dynamic>, String>>[
-                                  PieSeries<Map<String, dynamic>, String>(
+                                  ColumnSeries<Map<String, dynamic>, String>(
                                     dataSource: _vehiculosPorMarca,
                                     xValueMapper: (data, _) => data['marca'],
                                     yValueMapper: (data, _) => data['cantidad'],
                                     dataLabelSettings: DataLabelSettings(isVisible: true),
-                                    enableTooltip: true,
+                                    color: Colors.blueAccent,
                                   ),
                                 ],
                               ),
@@ -505,34 +547,36 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             ),
           ],
         ),
+        const SizedBox(height: 16),
+        Text(
+          'Ingresos por Citas Aprobadas:  24${_citaStats?.totalRevenue.toStringAsFixed(2) ?? '0.00'}',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: Colors.green[700],
+          ),
+        ),
       ],
     );
   }
 
-  Widget _buildCitaStatsChart() {
-    if (_citaStats?.counts == null || _citaStats!.counts.isEmpty) {
-      return Center(child: Text('No hay datos de citas para mostrar'));
-    }
-    final List<CitaData> chartData = [
-      CitaData('Aprobadas', _citaStats!.counts['Aprobada'] ?? 0, Colors.green),
-      CitaData('Pendientes', _citaStats!.counts['Pendiente'] ?? 0, Colors.orange),
-      CitaData('Canceladas', _citaStats!.counts['Cancelada'] ?? 0, Colors.red),
-    ];
-    return SfCircularChart(
-      title: ChartTitle(text: 'Distribución de Citas'),
-      legend: Legend(isVisible: true, position: LegendPosition.bottom),
-      series: <CircularSeries<
-          CitaData, String>>[
-        PieSeries<CitaData, String>(
-          dataSource: chartData,
-          pointColorMapper: (CitaData data, _) => data.color,
-          xValueMapper: (CitaData data, _) => data.state,
-          yValueMapper: (CitaData data, _) => data.count,
-          dataLabelSettings: DataLabelSettings(isVisible: true),
-          enableTooltip: true,
-        ),
-      ],
-    );
+  List<ChartSeries> _buildBarSeriesCitasPorTipo() {
+    // Obtiene todos los tipos de cita únicos
+    final tipos = <String>{};
+    _citasPorTipoYMes.values.forEach((mapa) => tipos.addAll(mapa.keys));
+    final colores = [Colors.purple, Colors.green, Colors.orange];
+    int colorIndex = 0;
+    return tipos.map((tipo) {
+      final color = colores[colorIndex++ % colores.length];
+      return ColumnSeries<MapEntry<String, Map<String, double>>, String>(
+        dataSource: _citasPorTipoYMes.entries.map((e) => MapEntry(e.key, e.value)).toList(),
+        xValueMapper: (entry, _) => entry.key,
+        yValueMapper: (entry, _) => entry.value[tipo] ?? 0.0,
+        name: tipo,
+        color: color,
+        dataLabelSettings: DataLabelSettings(isVisible: true),
+      );
+    }).toList();
   }
 
   Widget _buildEmployeesList() {
