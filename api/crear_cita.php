@@ -15,28 +15,36 @@ ini_set('display_errors', 1);
 require_once 'config/database.php';
 
 try {
+    $conn = Database::obtenerConexion();
     $data = json_decode(file_get_contents('php://input'), true);
-    
-    if (!isset($data['nombre']) || !isset($data['correo']) || !isset($data['fecha']) || !isset($data['hora'])) {
-        throw new Exception('Faltan datos requeridos');
+
+    // Valida los campos requeridos
+    if (
+        empty($data['tipoCita']) || empty($data['tipoCompra']) ||
+        empty($data['precio']) || empty($data['nombre']) ||
+        empty($data['correo']) || empty($data['fecha']) || empty($data['hora'])
+    ) {
+        throw new Exception('Faltan datos obligatorios');
     }
-    
-    $sql = "INSERT INTO citas (tipoCita, tipoCompra, precio, nombre, correo, fecha, hora, status) VALUES (?, ?, ?, ?, ?, ?, ?, 'Pendiente')";
-    $params = [
-        $data['tipoCita'] ?? '',
-        $data['tipoCompra'] ?? '',
-        $data['precio'] ?? 0,
-        $data['nombre'],
-        $data['correo'],
-        $data['fecha'],
-        $data['hora']
-    ];
-    
-    $nuevoId = Database::insert($sql, $params);
-    
+
+    $sql = "INSERT INTO citas (tipoCita, tipoCompra, precio, nombre, correo, fecha, hora, status, vehiculo_id)
+            VALUES (:tipoCita, :tipoCompra, :precio, :nombre, :correo, :fecha, :hora, :status, :vehiculo_id)";
+    $stmt = $conn->prepare($sql);
+    $stmt->execute([
+        ':tipoCita' => $data['tipoCita'],
+        ':tipoCompra' => $data['tipoCompra'],
+        ':precio' => $data['precio'],
+        ':nombre' => $data['nombre'],
+        ':correo' => $data['correo'],
+        ':fecha' => $data['fecha'],
+        ':hora' => $data['hora'],
+        ':status' => $data['status'] ?? 'Pendiente',
+        ':vehiculo_id' => $data['vehiculo_id'] ?? 0
+    ]);
+
     // Obtener la cita recién creada
     $sql = "SELECT * FROM citas WHERE id = ?";
-    $cita = Database::fetchOne($sql, [$nuevoId]);
+    $cita = Database::fetchOne($sql, [$conn->lastInsertId()]);
     
     echo json_encode([
         'success' => true,

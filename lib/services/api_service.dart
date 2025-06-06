@@ -326,5 +326,62 @@ class ApiService {
     }
   }
 
+  // Crear cita
+  Future<bool> crearCita(Cita cita) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/crear_cita.php'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        'tipoCita': cita.tipoCita,
+        'tipoCompra': cita.tipoCompra,
+        'precio': cita.precio,
+        'nombre': cita.nombre,
+        'correo': cita.correo,
+        'fecha': cita.fecha,
+        'hora': cita.hora,
+        'status': cita.status,
+        'vehiculo_id': cita.vehiculoId ?? 0,
+      }),
+    );
+    final data = json.decode(response.body);
+    if (data['success'] == true) return true;
+    throw Exception(data['error'] ?? 'Error al crear cita');
+  }
+
+  // Actualizar cita
+  Future<bool> actualizarCita(Cita cita) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/actualizar_cita.php'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        'id': cita.id,
+        'tipoCita': cita.tipoCita,
+        'tipoCompra': cita.tipoCompra,
+        'precio': cita.precio,
+        'nombre': cita.nombre,
+        'correo': cita.correo,
+        'fecha': cita.fecha,
+        'hora': cita.hora,
+        'status': cita.status,
+        'vehiculo_id': cita.vehiculoId ?? 0,
+      }),
+    );
+    final data = json.decode(response.body);
+    if (data['success'] == true) return true;
+    throw Exception(data['error'] ?? 'Error al actualizar cita');
+  }
+
+  // Eliminar cita
+  Future<bool> eliminarCita(int id) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/eliminar_cita.php'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({'id': id}),
+    );
+    final data = json.decode(response.body);
+    if (data['success'] == true) return true;
+    throw Exception(data['error'] ?? 'Error al eliminar cita');
+  }
+
   // Aquí puedes agregar más métodos según necesites
 }

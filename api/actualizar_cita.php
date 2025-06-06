@@ -4,54 +4,44 @@ header('Content-Type: application/json; charset=UTF-8');
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
+require_once 'conexion.php';
+
 try {
+    $conn = obtenerConexion();
     $data = json_decode(file_get_contents('php://input'), true);
     
-    if (!isset($data['id'])) {
+    if (empty($data['id'])) {
         throw new Exception('ID de cita requerido');
     }
 
-    $conexion = new PDO(
-        'mysql:host=localhost;dbname=jjlcars;charset=utf8mb4',
-        'root',
-        '',
-        array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION)
-    );
-
-    $sql = "UPDATE citas SET 
-            nombre = :nombre,
-            correo = :correo,
-            tipoCita = :tipoCita,
-            tipoCompra = :tipoCompra,
-            precio = :precio,
-            fecha = :fecha,
-            hora = :hora,
-            status = :status
+    $sql = "UPDATE citas SET
+                tipoCita = :tipoCita,
+                tipoCompra = :tipoCompra,
+                precio = :precio,
+                nombre = :nombre,
+                correo = :correo,
+                fecha = :fecha,
+                hora = :hora,
+                status = :status,
+                vehiculo_id = :vehiculo_id
             WHERE id = :id";
-
-    $stmt = $conexion->prepare($sql);
+    $stmt = $conn->prepare($sql);
     $stmt->execute([
-        ':id' => $data['id'],
-        ':nombre' => $data['nombre'],
-        ':correo' => $data['correo'],
         ':tipoCita' => $data['tipoCita'],
         ':tipoCompra' => $data['tipoCompra'],
         ':precio' => $data['precio'],
+        ':nombre' => $data['nombre'],
+        ':correo' => $data['correo'],
         ':fecha' => $data['fecha'],
         ':hora' => $data['hora'],
-        ':status' => $data['status']
+        ':status' => $data['status'],
+        ':vehiculo_id' => $data['vehiculo_id'],
+        ':id' => $data['id']
     ]);
 
-    echo json_encode([
-        'success' => true,
-        'mensaje' => 'Cita actualizada correctamente'
-    ]);
-
+    echo json_encode(['success' => true, 'message' => 'Cita actualizada correctamente']);
 } catch (Exception $e) {
-    http_response_code(500);
-    echo json_encode([
-        'success' => false,
-        'error' => $e->getMessage()
-    ]);
+    http_response_code(400);
+    echo json_encode(['success' => false, 'error' => $e->getMessage()]);
 }
 ?>
