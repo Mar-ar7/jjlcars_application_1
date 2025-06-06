@@ -5,7 +5,7 @@ class Vehiculo {
   final String descripcion;
   final double precio;
   final String imagen;
-  final DateTime fechaAgregado;
+  final int inventario;
 
   Vehiculo({
     required this.id,
@@ -14,18 +14,20 @@ class Vehiculo {
     required this.descripcion,
     required this.precio,
     required this.imagen,
-    required this.fechaAgregado,
+    required this.inventario,
   });
 
   factory Vehiculo.fromJson(Map<String, dynamic> json) {
     return Vehiculo(
-      id: json['id'],
+      id: int.parse(json['id'].toString()),
       marca: json['marca'],
       modelo: json['modelo'],
       descripcion: json['descripcion'],
       precio: double.parse(json['precio'].toString()),
-      imagen: json['imagen'],
-      fechaAgregado: DateTime.parse(json['fecha_agregado']),
+      imagen: json['imagen'].toString().startsWith('http')
+          ? json['imagen']
+          : 'http://10.0.2.2/jjlcars_application_1/api/Imagen/${json['imagen']}',
+      inventario: int.tryParse(json['inventario'].toString()) ?? 0,
     );
   }
 
@@ -37,7 +39,7 @@ class Vehiculo {
       'descripcion': descripcion,
       'precio': precio,
       'imagen': imagen,
-      'fecha_agregado': fechaAgregado.toIso8601String(),
+      'inventario': inventario,
     };
   }
 }
