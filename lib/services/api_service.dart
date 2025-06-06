@@ -333,7 +333,6 @@ class ApiService {
       headers: {'Content-Type': 'application/json'},
       body: json.encode({
         'tipoCita': cita.tipoCita,
-        'tipoCompra': cita.tipoCompra,
         'precio': cita.precio,
         'nombre': cita.nombre,
         'correo': cita.correo,
@@ -356,7 +355,6 @@ class ApiService {
       body: json.encode({
         'id': cita.id,
         'tipoCita': cita.tipoCita,
-        'tipoCompra': cita.tipoCompra,
         'precio': cita.precio,
         'nombre': cita.nombre,
         'correo': cita.correo,
