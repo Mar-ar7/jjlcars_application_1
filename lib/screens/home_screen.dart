@@ -8,6 +8,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import '../services/api_service.dart';
+import 'package:intl/intl.dart';
 
 // Define a simple data class for the chart (Ensuring it's at the top level)
 class CitaData {
@@ -473,8 +474,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                 primaryXAxis: CategoryAxis(title: AxisTitle(text: 'Marca')),
                                 primaryYAxis: NumericAxis(title: AxisTitle(text: 'Cantidad')),
                                 title: ChartTitle(text: 'Inventario de Vehículos por Marca'),
-                                series: <ChartSeries<
-                                    Map<String, dynamic>, String>>[
+                                series: <CartesianSeries<Map<String, dynamic>, String>>[
                                   ColumnSeries<Map<String, dynamic>, String>(
                                     dataSource: _vehiculosPorMarca,
                                     xValueMapper: (data, _) => data['marca'],
@@ -560,15 +560,16 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     );
   }
 
-  List<ChartSeries> _buildBarSeriesCitasPorTipo() {
-    // Obtiene todos los tipos de cita únicos
+  typedef CitaPorTipoEntry = MapEntry<String, Map<String, double>>;
+
+  List<CartesianSeries<CitaPorTipoEntry, String>> _buildBarSeriesCitasPorTipo() {
     final tipos = <String>{};
     _citasPorTipoYMes.values.forEach((mapa) => tipos.addAll(mapa.keys));
     final colores = [Colors.purple, Colors.green, Colors.orange];
     int colorIndex = 0;
     return tipos.map((tipo) {
       final color = colores[colorIndex++ % colores.length];
-      return ColumnSeries<MapEntry<String, Map<String, double>>, String>(
+      return ColumnSeries<CitaPorTipoEntry, String>(
         dataSource: _citasPorTipoYMes.entries.map((e) => MapEntry(e.key, e.value)).toList(),
         xValueMapper: (entry, _) => entry.key,
         yValueMapper: (entry, _) => entry.value[tipo] ?? 0.0,
