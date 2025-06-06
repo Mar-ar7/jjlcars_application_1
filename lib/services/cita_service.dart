@@ -73,4 +73,48 @@ class CitaService {
       rethrow;
     }
   }
+
+  Future<bool> actualizarStatusCita(int id, String status) async {
+    try {
+      developer.log('Intentando actualizar status de cita: ID=$id, Status=$status');
+
+      final response = await http.post(
+        Uri.parse('$baseUrl/actualizar_cita_status.php'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'id': id,
+          'status': status,
+        }),
+      ).timeout(
+        const Duration(seconds: 10),
+        onTimeout: () {
+          throw TimeoutException('La solicitud para actualizar el status tardó demasiado');
+        },
+      );
+
+      developer.log('Código de estado: ${response.statusCode}');
+      developer.log('Respuesta del servidor: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonResponse = json.decode(response.body);
+
+        if (jsonResponse['success'] == true) {
+          developer.log('Status actualizado exitosamente');
+          return true;
+        } else {
+          final errorMsg = jsonResponse['message'] ?? 'Error desconocido al actualizar status';
+          developer.log('Error en respuesta: $errorMsg');
+          throw Exception(errorMsg);
+        }
+      } else {
+        throw Exception('Error al actualizar status: ${response.statusCode}');
+      }
+    } catch (e, stackTrace) {
+      developer.log('Error al actualizar status de cita', error: e, stackTrace: stackTrace);
+      rethrow;
+    }
+  }
 }

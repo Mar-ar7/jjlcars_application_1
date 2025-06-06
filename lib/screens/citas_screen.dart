@@ -41,16 +41,23 @@ class _CitasScreenState extends State<CitasScreen> {
 
   Future<void> _actualizarStatus(Cita cita, String nuevoStatus) async {
     try {
-      await _apiService.postData(
+      final response = await _apiService.postData(
         'actualizar_cita_status.php',
         {
           'id': cita.id.toString(),
           'status': nuevoStatus,
         },
       );
-      setState(() {
-        cita.status = nuevoStatus;
-      });
+      if (response['success'] == true) {
+        setState(() {
+          cita.status = nuevoStatus;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Status actualizado correctamente')),
+        );
+      } else {
+        throw Exception(response['message'] ?? 'Error desconocido al actualizar status');
+      }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error al actualizar status: $e')),
