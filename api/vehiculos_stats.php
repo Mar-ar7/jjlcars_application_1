@@ -1,1 +1,39 @@
-<?php\\nheader(\\\'Content-Type: application/json\\\');\\n\\nrequire_once \\\'conexion.php\\\';\\n\\n// Disable display_errors and enable error_log for production\\nini_set(\\\'display_errors\\\', 0);\\nini_set(\\\'log_errors\\\', 1);\\nini_set(\\\'error_log\\\', __DIR__ . \\\'/php-error.log\\\');\\n\\n\\$response = [\\\'success\\\' => false, \\\'message\\\' => \\\'\\\', \\\'data\\\' => [\\\'totalVehiculos\\\' => 0]];\\n\\ntry {\\n    // Check if the database connection is established\\n    if (\\$conn === null) {\n        throw new Exception(\\\'Database connection failed.\\\');\n    }\n\n    // Query to get the total count of vehicles\\n    \\$sql = \\\"SELECT COUNT(*) as totalVehiculos FROM vehiculos\\\";\n    \\$stmt = \\$conn->prepare(\\$sql);\n    \\$stmt->execute();\n\n    \\$result = \\$stmt->fetch(PDO::FETCH_ASSOC);\n\n    if (\\$result) {\n        \\$response[\\\'success\\\'] = true;\n        // Ensure the count is treated as an integer\n        \\$response[\\\'data\\\'][\\\'totalVehiculos\\\'] = (int)\$result[\\\'totalVehiculos\\\'];\n    } else {\n         throw new Exception(\\\'Could not fetch vehicle count.\\\');\n    }\n\n} catch (Exception \\$e) {\n    \\$response[\\\'message\\\'] = \\\'Error fetching vehicle statistics: \\\' . \\$e->getMessage();\n    error_log(\\$response[\\\'message\\\']);\n} finally {\n    // No need to close PDO connection or statement explicitly\n    // They will be closed automatically when the script finishes\n}\n\necho json_encode(\\$response);\n\n// Ensure no extra output after the JSON response\nexit();\n?> 
+<?php
+header('Content-Type: application/json');
+require_once 'conexion.php';
+
+ini_set('display_errors', 0);
+ini_set('log_errors', 1);
+ini_set('error_log', __DIR__ . '/php-error.log');
+
+$response = ['success' => false, 'message' => '', 'data' => []];
+
+try {
+    if ($conn === null) {
+        throw new Exception('Database connection failed.');
+    }
+
+    // Consulta para contar vehículos por marca
+    $sql = "SELECT marca, COUNT(*) as cantidad FROM vehiculos GROUP BY marca";
+    $stmt = $conn->prepare($sql);
+    $stmt->execute();
+
+    $marcas = [];
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        $marcas[] = [
+            'marca' => $row['marca'],
+            'cantidad' => (int)$row['cantidad']
+        ];
+    }
+
+    $response['success'] = true;
+    $response['data'] = $marcas;
+
+} catch (Exception $e) {
+    $response['message'] = 'Error fetching vehicle statistics: ' . $e->getMessage();
+    error_log($response['message']);
+}
+
+echo json_encode($response);
+exit();
+?> 

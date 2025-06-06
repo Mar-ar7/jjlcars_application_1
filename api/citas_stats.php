@@ -1,1 +1,59 @@
-<?php\nheader(\'Content-Type: application/json\');\n\nrequire_once \'conexion.php\';\n\n// Disable display_errors and enable error_log for production\nini_set(\'display_errors\', 0);\nini_set(\'log_errors\', 1);\nini_set(\'error_log\', __DIR__ . \'/php-error.log\');\n\n$response = [\'success\' => false, \'message\' => \'\', \'data\' => []];\n\ntry {\n    // Check if the database connection is established\n    if (\$conn === null) {\n        throw new Exception(\'Database connection failed.\');\n    }\n\n    // Query to get count of citas by status\n    \$sql_counts = \"SELECT estado, COUNT(*) as count FROM citas GROUP BY estado\";\n    \$stmt_counts = \$conn->prepare(\$sql_counts);\n    \$stmt_counts->execute();\n\n    \$stats = [];\n    while (\$row = \$stmt_counts->fetch(PDO::FETCH_ASSOC)) {\n        \$stats[\$row[\'estado\']] = (int)\$row[\'count\']; // Ensure count is integer\n    }\n\n    // Initialize counts to 0 if a status is not present in the results\n    \$estados = [\'aprobada\', \'pendiente\', \'cancelada\']; // Adjust these based on your actual estados\n    foreach (\$estados as \$estado) {\n        if (!isset(\$stats[\$estado])) {\n            \$stats[\$estado] = 0;\n        }\n    }\n\n    // Query to get total revenue from approved citas\n    // *** ASSUMING a column named 'precio' exists in the 'citas' table ***\n    \$sql_revenue = \"SELECT SUM(precio) as totalRevenue FROM citas WHERE estado = \'aprobada\'\";\n    \$stmt_revenue = \$conn->prepare(\$sql_revenue);\n    \$stmt_revenue->execute();\n\n    \$revenue_result = \$stmt_revenue->fetch(PDO::FETCH_ASSOC);\n    \$totalRevenue = (float)\$revenue_result[\'totalRevenue\'] ?? 0.0; // Ensure revenue is float\n\n    \$response[\'success\'] = true;\n    \$response[\'data\'] = [\n        \'counts\' => \$stats,\n        \'totalRevenue\' => \$totalRevenue,\n    ];\n\n} catch (Exception \$e) {\n    \$response[\'message\'] = \'Error fetching cita statistics: \' . \$e->getMessage();\n    error_log(\$response[\'message\']);\n} finally {\n    // No need to close PDO connection or statement explicitly\n    // They will be closed automatically when the script finishes\n}\n\necho json_encode(\$response);\n\n// Ensure no extra output after the JSON response\nexit();\n?> 
+<?php
+header('Content-Type: application/json');
+
+require_once 'conexion.php';
+
+// Disable display_errors and enable error_log for production
+ini_set('display_errors', 0);
+ini_set('log_errors', 1);
+ini_set('error_log', __DIR__ . '/php-error.log');
+
+$response = ['success' => false, 'message' => '', 'data' => []];
+
+try {
+    // Check if the database connection is established
+    if ($conn === null) {
+        throw new Exception('Database connection failed.');
+    }
+
+    // Query to get count of citas by status
+    $sql_counts = "SELECT estado, COUNT(*) as count FROM citas GROUP BY estado";
+    $stmt_counts = $conn->prepare($sql_counts);
+    $stmt_counts->execute();
+
+    $stats = [];
+    while ($row = $stmt_counts->fetch(PDO::FETCH_ASSOC)) {
+        $stats[$row['estado']] = (int)$row['count']; // Ensure count is integer
+    }
+
+    // Initialize counts to 0 if a status is not present in the results
+    $estados = ['aprobada', 'pendiente', 'cancelada']; // Ajusta según tus estados reales
+    foreach ($estados as $estado) {
+        if (!isset($stats[$estado])) {
+            $stats[$estado] = 0;
+        }
+    }
+
+    // Query to get total revenue from approved citas
+    // *** Asegúrate que exista la columna 'precio' en la tabla 'citas' ***
+    $sql_revenue = "SELECT SUM(precio) as totalRevenue FROM citas WHERE estado = 'aprobada'";
+    $stmt_revenue = $conn->prepare($sql_revenue);
+    $stmt_revenue->execute();
+
+    $revenue_result = $stmt_revenue->fetch(PDO::FETCH_ASSOC);
+    $totalRevenue = (float)($revenue_result['totalRevenue'] ?? 0.0); // Ensure revenue is float
+
+    $response['success'] = true;
+    $response['data'] = [
+        'counts' => $stats,
+        'totalRevenue' => $totalRevenue,
+    ];
+
+} catch (Exception $e) {
+    $response['message'] = 'Error fetching cita statistics: ' . $e->getMessage();
+    error_log($response['message']);
+}
+
+echo json_encode($response);
+exit();
+?>
