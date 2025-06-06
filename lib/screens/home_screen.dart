@@ -18,6 +18,9 @@ class CitaData {
   final Color? color;
 }
 
+// Typedef fuera de la clase
+typedef CitaPorTipoEntry = MapEntry<String, Map<String, double>>;
+
 class HomeScreen extends StatefulWidget {
   final Map<String, dynamic> userData;
 
@@ -560,19 +563,17 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     );
   }
 
-  typedef CitaPorTipoEntry = MapEntry<String, Map<String, double>>;
-
   List<CartesianSeries<CitaPorTipoEntry, String>> _buildBarSeriesCitasPorTipo() {
-    final tipos = <String>{};
-    _citasPorTipoYMes.values.forEach((mapa) => tipos.addAll(mapa.keys));
-    final colores = [Colors.purple, Colors.green, Colors.orange];
+    final Set<String> tipos = <String>{};
+    _citasPorTipoYMes.values.forEach((Map<String, double> mapa) => tipos.addAll(mapa.keys));
+    final List<Color> colores = [Colors.purple, Colors.green, Colors.orange];
     int colorIndex = 0;
-    return tipos.map((tipo) {
-      final color = colores[colorIndex++ % colores.length];
+    return tipos.map((String tipo) {
+      final Color color = colores[colorIndex++ % colores.length];
       return ColumnSeries<CitaPorTipoEntry, String>(
         dataSource: _citasPorTipoYMes.entries.map((e) => MapEntry(e.key, e.value)).toList(),
-        xValueMapper: (entry, _) => entry.key,
-        yValueMapper: (entry, _) => entry.value[tipo] ?? 0.0,
+        xValueMapper: (entry, _) => entry!.key,
+        yValueMapper: (entry, _) => entry!.value[tipo] ?? 0.0,
         name: tipo,
         color: color,
         dataLabelSettings: DataLabelSettings(isVisible: true),
