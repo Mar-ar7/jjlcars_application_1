@@ -434,15 +434,40 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         : _citasPorTipoYMes.isEmpty
                             ? Center(child: Text('No hay datos de ventas para mostrar'))
                             : SfCartesianChart(
-                                primaryXAxis: CategoryAxis(title: AxisTitle(text: 'Mes')),
+                                primaryXAxis: CategoryAxis(
+                                  title: AxisTitle(text: 'Mes'),
+                                  labelRotation: 30,
+                                  labelIntersectAction: AxisLabelIntersectAction.wrap,
+                                ),
                                 primaryYAxis: NumericAxis(
                                   title: AxisTitle(text: 'Ventas en USD'),
                                   numberFormat: NumberFormat.simpleCurrency(name: 'USD'),
                                 ),
-                                legend: Legend(isVisible: true, position: LegendPosition.top),
+                                legend: Legend(isVisible: true, position: LegendPosition.top, overflowMode: LegendItemOverflowMode.wrap),
                                 title: ChartTitle(text: 'Proyección de Ventas por Categoría'),
                                 series: _buildBarSeriesCitasPorTipo(),
                               ),
+                if (_citaStats != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 16.0),
+                    child: Center(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: Colors.green[50],
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          'Ingresos por Citas Aprobadas: ${NumberFormat.simpleCurrency(name: 'USD').format(_citaStats!.totalRevenue)}',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green[800],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),
