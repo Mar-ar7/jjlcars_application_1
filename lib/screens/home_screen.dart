@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../widgets/custom_drawer.dart';
-import '../widgets/activity_chart.dart';
 import '../main.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:http/http.dart' as http;
@@ -44,6 +43,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   bool _isLoadingVehiculoStats = true;
   String? _vehiculoStatsError;
 
+  List<Map<String, dynamic>> _vehiculosPorMarca = [];
+  bool _isLoadingVehiculosMarca = true;
+  String? _vehiculosMarcaError;
+
   final ApiService _apiService = ApiService();
 
   @override
@@ -52,6 +55,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     cargarEmpleados();
     _loadAllStats();
+    _loadVehiculosPorMarca();
   }
 
   @override
@@ -243,6 +247,40 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     }
   }
 
+  Future<void> _loadVehiculosPorMarca() async {
+    setState(() {
+      _isLoadingVehiculosMarca = true;
+      _vehiculosMarcaError = null;
+    });
+    try {
+      final response = await http.get(
+        Uri.parse('http://10.0.2.2/jjlcars_application_1/api/vehiculos_stats.php'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+      );
+      if (response.statusCode == 200) {
+        final decoded = json.decode(response.body);
+        if (decoded['success'] == true && decoded['data'] != null) {
+          setState(() {
+            _vehiculosPorMarca = List<Map<String, dynamic>>.from(decoded['data']);
+            _isLoadingVehiculosMarca = false;
+          });
+        } else {
+          throw Exception(decoded['message'] ?? 'Error desconocido al obtener vehículos por marca');
+        }
+      } else {
+        throw Exception('Error del servidor: ${response.statusCode}');
+      }
+    } catch (e) {
+      setState(() {
+        _vehiculosMarcaError = e.toString();
+        _isLoadingVehiculosMarca = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -270,8 +308,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               _buildWelcomeCard(),
               const SizedBox(height: 24),
               _buildStatistics(),
-              const SizedBox(height: 24),
-              _buildActivityChart(),
               const SizedBox(height: 24),
               _buildEmployeesList(),
             ],
@@ -324,7 +360,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           ),
         ),
         const SizedBox(height: 16),
-        // Citas Chart
+        // Gráfica de Citas
         Card(
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(15),
@@ -353,7 +389,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                               _buildCitaStatsChart(),
                               const SizedBox(height: 16),
                               Text(
-                                'Ingresos por Citas Aprobadas: \${_citaStats?.totalRevenue.toStringAsFixed(2) ?? \'0.00\'}',
+                                'Ingresos por Citas Aprobadas: Q${_citaStats?.totalRevenue.toStringAsFixed(2) ?? '0.00'}',
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
@@ -367,15 +403,59 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           ),
         ),
         const SizedBox(height: 16),
-        // Clients and Vehicles Stats
+        // Gráfica de Vehículos por Marca
+        Card(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
+          elevation: 4,
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Inventario de Vehículos por Marca',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                _isLoadingVehiculosMarca
+                    ? Center(child: CircularProgressIndicator())
+                    : _vehiculosMarcaError != null
+                        ? Center(child: Text('Error al cargar vehículos: $_vehiculosMarcaError'))
+                        : _vehiculosPorMarca.isEmpty
+                            ? Center(child: Text('No hay datos de vehículos para mostrar'))
+                            : SfCircularChart(
+                                title: ChartTitle(text: ''),
+                                legend: Legend(isVisible: true, position: LegendPosition.bottom),
+                                series: <CircularSeries<
+                                    Map<String, dynamic>, String>>[
+                                  PieSeries<Map<String, dynamic>, String>(
+                                    dataSource: _vehiculosPorMarca,
+                                    xValueMapper: (data, _) => data['marca'],
+                                    yValueMapper: (data, _) => data['cantidad'],
+                                    dataLabelSettings: DataLabelSettings(isVisible: true),
+                                    enableTooltip: true,
+                                  ),
+                                ],
+                              ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+        // Tarjetas de resumen
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
               child: Card(
-                 shape: RoundedRectangleBorder(
-                   borderRadius: BorderRadius.circular(15),
-                 ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15),
+                ),
                 elevation: 4,
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
@@ -423,59 +503,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 ),
               ),
             ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Card(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(15),
-                ),
-                elevation: 4,
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: Colors.green.shade400,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: const Icon(
-                              Icons.directions_car_outlined,
-                              color: Colors.white,
-                              size: 24,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                           _isLoadingVehiculoStats
-                              ? CircularProgressIndicator()
-                              : _vehiculoStatsError != null
-                                  ? Text('Error')
-                                  : Text(
-                                      '$_totalVehiculos',
-                                      style: TextStyle(
-                                        fontSize: 24,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Total Vehículos',
-                        style: TextStyle(
-                          color: Colors.grey[600],
-                          fontSize: 14,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
           ],
         ),
       ],
@@ -483,65 +510,28 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   Widget _buildCitaStatsChart() {
-    // Data model for the chart
-    // Ensure _citaStats and its counts are not null before accessing entries
     if (_citaStats?.counts == null || _citaStats!.counts.isEmpty) {
-        return Center(child: Text('No hay datos de citas para mostrar'));
+      return Center(child: Text('No hay datos de citas para mostrar'));
     }
-    
-    final List<CitaData> chartData = _citaStats!.counts.entries.map((entry) {
-      // Map states from backend to more user-friendly labels if needed
-      String label = entry.key;
-      Color color = Colors.blue; // Default color
-
-      switch (entry.key) {
-        case 'aprobada':
-          label = 'Aprobadas';
-          color = Colors.green;
-          break;
-        case 'pendiente':
-          label = 'Pendientes';
-          color = Colors.orange;
-          break;
-        case 'cancelada':
-          label = 'Canceladas';
-          color = Colors.red;
-          break;
-      }
-      return CitaData(label, entry.value, color);
-    }).toList();
-
+    final List<CitaData> chartData = [
+      CitaData('Aprobadas', _citaStats!.counts['Aprobada'] ?? 0, Colors.green),
+      CitaData('Pendientes', _citaStats!.counts['Pendiente'] ?? 0, Colors.orange),
+      CitaData('Canceladas', _citaStats!.counts['Cancelada'] ?? 0, Colors.red),
+    ];
     return SfCircularChart(
-      series: <CircularSeries>[ // Use CircularSeries for pie/doughnut charts
+      title: ChartTitle(text: 'Distribución de Citas'),
+      legend: Legend(isVisible: true, position: LegendPosition.bottom),
+      series: <CircularSeries<
+          CitaData, String>>[
         PieSeries<CitaData, String>(
           dataSource: chartData,
-          pointColorMapper:(CitaData data, _) => data.color,
+          pointColorMapper: (CitaData data, _) => data.color,
           xValueMapper: (CitaData data, _) => data.state,
           yValueMapper: (CitaData data, _) => data.count,
           dataLabelSettings: DataLabelSettings(isVisible: true),
           enableTooltip: true,
         ),
       ],
-      // Optional: Add title and legend
-      // title: ChartTitle(text: 'Estadísticas de Citas'),
-      legend: Legend(isVisible: true),
-    );
-  }
-
-  Widget _buildActivityChart() {
-    final List<FlSpot> dummyData = [
-      FlSpot(0, 3),
-      FlSpot(1, 1),
-      FlSpot(2, 4),
-      FlSpot(3, 2),
-      FlSpot(4, 5),
-      FlSpot(5, 3),
-      FlSpot(6, 4),
-    ];
-
-    return ActivityChart(
-      spots: dummyData,
-      title: 'Car Activity',
     );
   }
 
