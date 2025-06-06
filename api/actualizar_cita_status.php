@@ -14,6 +14,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($id && $status) {
         $conn = obtenerConexion();
+        if (!$conn) {
+            echo json_encode(['success' => false, 'message' => 'No se pudo obtener la conexión a la base de datos']);
+            exit();
+        }
         try {
             $stmt = $conn->prepare("UPDATE citas SET status = ? WHERE id = ?");
             $stmt->execute([$status, $id]);
