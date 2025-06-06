@@ -1,6 +1,7 @@
 class Cita {
   final int id;
   final String tipoCita;
+  final String tipoCompra;
   final int precio;
   final String nombre;
   final String correo;
@@ -13,6 +14,7 @@ class Cita {
   Cita({
     required this.id,
     required this.tipoCita,
+    required this.tipoCompra,
     required this.precio,
     required this.nombre,
     required this.correo,
@@ -27,6 +29,7 @@ class Cita {
     return Cita(
       id: int.tryParse(json['id'].toString()) ?? 0,
       tipoCita: json['tipoCita'] ?? json['tipocita'] ?? '',
+      tipoCompra: json['tipoCompra'] ?? json['tipocompra'] ?? '',
       precio: int.tryParse(json['precio'].toString()) ?? 0,
       nombre: json['nombre'] ?? '',
       correo: json['correo'] ?? '',

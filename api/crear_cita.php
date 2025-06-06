@@ -51,7 +51,7 @@ try {
         'mensaje' => 'Cita creada exitosamente',
         'cita' => $cita
     ]);
-    
+    exit();
 } catch (Exception $e) {
     error_log("Error en crear_cita.php: " . $e->getMessage());
     http_response_code(500);

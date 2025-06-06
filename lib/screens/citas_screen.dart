@@ -64,6 +64,7 @@ class _CitasScreenState extends State<CitasScreen> {
     final nombreController = TextEditingController(text: cita?.nombre ?? '');
     final correoController = TextEditingController(text: cita?.correo ?? '');
     String tipoCita = cita?.tipoCita ?? '';
+    String tipoCompra = cita?.tipoCompra ?? '';
     final precioController = TextEditingController(text: cita?.precio.toString() ?? '');
     DateTime? fecha = cita != null && cita.fecha.isNotEmpty ? DateTime.tryParse(cita.fecha) : null;
     TimeOfDay? hora = cita != null && cita.hora.isNotEmpty
@@ -82,6 +83,12 @@ class _CitasScreenState extends State<CitasScreen> {
     final tipoCitaDropdown = tipoCitaOpciones.toSet().toList();
     if (tipoCita.isNotEmpty && !tipoCitaDropdown.contains(tipoCita)) {
       tipoCitaDropdown.insert(0, tipoCita);
+    }
+
+    final tipoCompraOpciones = ['Vehículo', 'Servicio menor', 'Test de manejo'];
+    final tipoCompraDropdown = tipoCompraOpciones.toSet().toList();
+    if (tipoCompra.isNotEmpty && !tipoCompraDropdown.contains(tipoCompra)) {
+      tipoCompraDropdown.insert(0, tipoCompra);
     }
 
     await showDialog(
@@ -132,6 +139,15 @@ class _CitasScreenState extends State<CitasScreen> {
                             .map((op) => DropdownMenuItem(value: op, child: Text(op)))
                             .toList(),
                         onChanged: (v) => setState(() => tipoCita = v ?? ''),
+                        validator: (v) => v == null || v.isEmpty ? 'Campo obligatorio' : null,
+                      ),
+                      DropdownButtonFormField<String>(
+                        value: tipoCompra.isNotEmpty ? tipoCompra : null,
+                        decoration: const InputDecoration(labelText: 'Tipo de Compra'),
+                        items: tipoCompraDropdown
+                            .map((op) => DropdownMenuItem(value: op, child: Text(op)))
+                            .toList(),
+                        onChanged: (v) => setState(() => tipoCompra = v ?? ''),
                         validator: (v) => v == null || v.isEmpty ? 'Campo obligatorio' : null,
                       ),
                       TextFormField(
@@ -199,7 +215,7 @@ class _CitasScreenState extends State<CitasScreen> {
                             child: Text('Seleccione una hora', style: TextStyle(color: Colors.red, fontSize: 12)),
                           ),
                         ),
-                      if ((tipoCita == 'Servicio' || tipoCita == 'Cotización') && !cargandoVehiculos && errorVehiculos == null)
+                      if ((tipoCompra == 'Vehículo' || tipoCompra == 'Servicio menor') && !cargandoVehiculos && errorVehiculos == null)
                         DropdownButtonFormField<int>(
                           value: vehiculoId,
                           decoration: const InputDecoration(labelText: 'Vehículo'),
@@ -239,6 +255,7 @@ class _CitasScreenState extends State<CitasScreen> {
                             final nuevaCita = Cita(
                               id: cita?.id ?? 0,
                               tipoCita: tipoCita,
+                              tipoCompra: tipoCompra,
                               precio: int.tryParse(precioController.text) ?? 0,
                               nombre: nombreController.text,
                               correo: correoController.text,
@@ -364,6 +381,7 @@ class _CitasScreenState extends State<CitasScreen> {
                                       Text('Correo: ${cita.correo}', style: const TextStyle(fontSize: 14)),
                                       Text('Precio: Q${cita.precio}', style: const TextStyle(fontSize: 14)),
                                       Text('Fecha: ${cita.fecha} ${cita.hora}', style: const TextStyle(fontSize: 14)),
+                                      Text('Tipo de compra: ${cita.tipoCompra}', style: const TextStyle(fontSize: 14)),
                                       if (cita.vehiculoId != null && cita.vehiculoId != 0)
                                         Text('Vehículo ID: ${cita.vehiculoId}', style: const TextStyle(fontSize: 14)),
                                       Text('Status: ${cita.status}', style: const TextStyle(fontSize: 14)),

@@ -420,7 +420,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Proyección de Ventas por Categoría',
+                  'Proyección de Ventas por Tipo de Compra',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
