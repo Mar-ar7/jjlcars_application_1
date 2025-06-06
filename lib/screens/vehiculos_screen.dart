@@ -86,7 +86,7 @@ class _VehiculosScreenState extends State<VehiculosScreen> {
                           ),
                           child: imagenFile != null
                               ? Image.file(imagenFile!, fit: BoxFit.cover)
-                              : (imagenUrl != null && imagenUrl.isNotEmpty)
+                              : ((imagenUrl ?? '').isNotEmpty)
                                   ? Image.network(imagenUrl!, fit: BoxFit.cover)
                                   : const Icon(Icons.camera_alt, size: 48, color: Colors.grey),
                         ),
