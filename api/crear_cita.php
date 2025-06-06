@@ -9,13 +9,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
+// ¡IMPORTANTE! No mostrar errores en pantalla, solo loguearlos
+ini_set('display_errors', 0);
+ini_set('log_errors', 1);
+ini_set('error_log', __DIR__ . '/php-error.log');
 
 require_once 'config/database.php';
 
 try {
-    $conn = Database::obtenerConexion();
+    // ¡OJO! El método correcto es getConnection()
+    $conn = Database::getConnection();
     $data = json_decode(file_get_contents('php://input'), true);
 
     // Valida los campos requeridos
@@ -45,13 +48,14 @@ try {
     // Obtener la cita recién creada
     $sql = "SELECT * FROM citas WHERE id = ?";
     $cita = Database::fetchOne($sql, [$conn->lastInsertId()]);
-    
+
     echo json_encode([
         'success' => true,
         'mensaje' => 'Cita creada exitosamente',
         'cita' => $cita
     ]);
     exit();
+
 } catch (Exception $e) {
     error_log("Error en crear_cita.php: " . $e->getMessage());
     http_response_code(500);
@@ -59,4 +63,5 @@ try {
         'success' => false,
         'error' => $e->getMessage()
     ]);
+    exit();
 } 
