@@ -444,7 +444,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                   numberFormat: NumberFormat.simpleCurrency(name: 'USD'),
                                 ),
                                 legend: Legend(isVisible: true, position: LegendPosition.top, overflowMode: LegendItemOverflowMode.wrap),
-                                title: ChartTitle(text: 'Proyección de Ventas por Categoría'),
                                 series: _buildBarSeriesCitasPorTipo(),
                               ),
                 if (_citaStats != null)
@@ -501,14 +500,26 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                             : SfCartesianChart(
                                 primaryXAxis: CategoryAxis(title: AxisTitle(text: 'Marca')),
                                 primaryYAxis: NumericAxis(title: AxisTitle(text: 'Cantidad')),
-                                title: ChartTitle(text: 'Inventario de Vehículos por Marca'),
                                 series: <CartesianSeries<Map<String, dynamic>, String>>[
                                   ColumnSeries<Map<String, dynamic>, String>(
                                     dataSource: _vehiculosPorMarca,
                                     xValueMapper: (data, _) => data['marca'],
                                     yValueMapper: (data, _) => data['cantidad'],
                                     dataLabelSettings: DataLabelSettings(isVisible: true),
-                                    color: Colors.blueAccent,
+                                    pointColorMapper: (data, _) {
+                                      switch ((data['marca'] as String).toLowerCase()) {
+                                        case 'audi':
+                                          return Colors.redAccent;
+                                        case 'bmw':
+                                          return Colors.blueAccent;
+                                        case 'chevrolet':
+                                          return Colors.amber;
+                                        case 'ferrari':
+                                          return Colors.deepOrange;
+                                        default:
+                                          return Colors.grey;
+                                      }
+                                    },
                                   ),
                                 ],
                               ),
