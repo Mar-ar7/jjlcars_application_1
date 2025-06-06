@@ -12,9 +12,7 @@ $response = ['success' => false, 'message' => '', 'data' => []];
 
 try {
     // Check if the database connection is established
-    if ($conn === null) {
-        throw new Exception('Database connection failed.');
-    }
+    $conn = obtenerConexion();
 
     // Consulta para contar el total de clientes
     $sql = "SELECT COUNT(*) as totalClientes FROM clientes";

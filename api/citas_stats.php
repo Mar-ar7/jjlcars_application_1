@@ -12,9 +12,7 @@ $response = ['success' => false, 'message' => '', 'data' => []];
 
 try {
     // Check if the database connection is established
-    if ($conn === null) {
-        throw new Exception('Database connection failed.');
-    }
+    $conn = obtenerConexion();
 
     // Query to get count of citas by status
     $sql_counts = "SELECT estado, COUNT(*) as count FROM citas GROUP BY estado";

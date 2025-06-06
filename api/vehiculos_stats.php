@@ -9,9 +9,7 @@ ini_set('error_log', __DIR__ . '/php-error.log');
 $response = ['success' => false, 'message' => '', 'data' => []];
 
 try {
-    if ($conn === null) {
-        throw new Exception('Database connection failed.');
-    }
+    $conn = obtenerConexion();
 
     // Consulta para contar vehículos por marca
     $sql = "SELECT marca, COUNT(*) as cantidad FROM vehiculos GROUP BY marca";
