@@ -1,5 +1,5 @@
 ﻿<?php
-header('Content-Type: application/json');
+header('Content-Type: application/json; charset=utf-8');
 //die("<!-- DEBUG -->"); // PRUEBA: Comentar o eliminar después
 
 include 'conexion.php';
@@ -13,25 +13,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $status = $data['status'] ?? null;
 
     if ($id && $status) {
-        $conn = obtenerConexion();
-        if (!$conn) {
-            echo json_encode(['success' => false, 'message' => 'No se pudo obtener la conexión a la base de datos']);
-            exit();
-        }
         try {
-            $stmt = $conn->prepare("UPDATE citas SET status = ? WHERE id = ?");
-            $stmt->execute([$status, $id]);
-            if ($stmt->rowCount() > 0) {
-                echo json_encode(['success' => true, 'message' => 'Status actualizado']);
+            $conn = obtenerConexion();
+            if (!$conn) {
+                http_response_code(500);
+                die(json_encode(['success' => false, 'message' => 'Error de conexión a la base de datos']));
+            }
+
+            $stmt = $conn->prepare("UPDATE citas SET status = :status WHERE id = :id");
+            $stmt->bindParam(':status', $status, PDO::PARAM_STR);
+            $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+            
+            if ($stmt->execute()) {
+                die(json_encode(['success' => true, 'message' => 'Status actualizado correctamente']));
             } else {
-                echo json_encode(['success' => false, 'message' => 'No se actualizó ningún registro']);
+                http_response_code(400);
+                die(json_encode(['success' => false, 'message' => 'No se pudo actualizar el status']));
             }
         } catch (Exception $e) {
-            echo json_encode(['success' => false, 'message' => 'Error al actualizar', 'error' => $e->getMessage()]);
+            http_response_code(500);
+            die(json_encode(['success' => false, 'message' => 'Error al actualizar el status']));
         }
     } else {
-        echo json_encode(['success' => false, 'message' => 'Datos incompletos']);
+        http_response_code(400);
+        die(json_encode(['success' => false, 'message' => 'Datos incompletos']));
     }
 } else {
-    echo json_encode(['success' => false, 'message' => 'Método no permitido']);
+    http_response_code(405);
+    die(json_encode(['success' => false, 'message' => 'Método no permitido']));
 }
