@@ -15,17 +15,17 @@ try {
     $conn = obtenerConexion();
 
     // Query to get count of citas by status
-    $sql_counts = "SELECT estado, COUNT(*) as count FROM citas GROUP BY estado";
+    $sql_counts = "SELECT status, COUNT(*) as count FROM citas GROUP BY status";
     $stmt_counts = $conn->prepare($sql_counts);
     $stmt_counts->execute();
 
     $stats = [];
     while ($row = $stmt_counts->fetch(PDO::FETCH_ASSOC)) {
-        $stats[$row['estado']] = (int)$row['count']; // Ensure count is integer
+        $stats[$row['status']] = (int)$row['count']; // Ensure count is integer
     }
 
     // Initialize counts to 0 if a status is not present in the results
-    $estados = ['aprobada', 'pendiente', 'cancelada']; // Ajusta según tus estados reales
+    $estados = ['Aprobada', 'Pendiente', 'Cancelada']; // Usa los valores reales de tu base de datos
     foreach ($estados as $estado) {
         if (!isset($stats[$estado])) {
             $stats[$estado] = 0;
@@ -34,7 +34,7 @@ try {
 
     // Query to get total revenue from approved citas
     // *** Asegúrate que exista la columna 'precio' en la tabla 'citas' ***
-    $sql_revenue = "SELECT SUM(precio) as totalRevenue FROM citas WHERE estado = 'aprobada'";
+    $sql_revenue = "SELECT SUM(precio) as totalRevenue FROM citas WHERE status = 'Aprobada'";
     $stmt_revenue = $conn->prepare($sql_revenue);
     $stmt_revenue->execute();
 
