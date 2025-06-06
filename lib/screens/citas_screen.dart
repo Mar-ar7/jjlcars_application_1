@@ -79,7 +79,7 @@ class _CitasScreenState extends State<CitasScreen> {
     bool isLoading = false;
 
     final tipoCitaOpciones = ['Servicio', 'Cotización', 'Test Drive'];
-    final tipoCitaDropdown = List<String>.from(tipoCitaOpciones);
+    final tipoCitaDropdown = tipoCitaOpciones.toSet().toList();
     if (tipoCita.isNotEmpty && !tipoCitaDropdown.contains(tipoCita)) {
       tipoCitaDropdown.insert(0, tipoCita);
     }
@@ -120,7 +120,7 @@ class _CitasScreenState extends State<CitasScreen> {
                         decoration: const InputDecoration(labelText: 'Correo'),
                         validator: (v) {
                           if (v == null || v.isEmpty) return 'Campo obligatorio';
-                          if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}\$').hasMatch(v)) return 'Correo inválido';
+                          if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(v)) return 'Correo inválido';
                           return null;
                         },
                         keyboardType: TextInputType.emailAddress,
@@ -199,31 +199,25 @@ class _CitasScreenState extends State<CitasScreen> {
                             child: Text('Seleccione una hora', style: TextStyle(color: Colors.red, fontSize: 12)),
                           ),
                         ),
-                      cargandoVehiculos
-                          ? const Padding(
-                              padding: EdgeInsets.all(8.0),
-                              child: CircularProgressIndicator(),
-                            )
-                          : errorVehiculos != null
-                              ? Text('Error cargando vehículos: $errorVehiculos', style: const TextStyle(color: Colors.red))
-                              : DropdownButtonFormField<int>(
-                                  value: vehiculoId,
-                                  decoration: const InputDecoration(labelText: 'Vehículo'),
-                                  items: vehiculos
-                                      .map((v) => DropdownMenuItem(
-                                            value: v.id,
-                                            child: Text('${v.marca} ${v.modelo}'),
-                                          ))
-                                      .toList(),
-                                  onChanged: (value) {
-                                    setState(() {
-                                      vehiculoId = value;
-                                    });
-                                  },
-                                  isExpanded: true,
-                                  hint: const Text('Seleccione un vehículo'),
-                                  validator: (v) => v == null ? 'Campo obligatorio' : null,
-                                ),
+                      if ((tipoCita == 'Servicio' || tipoCita == 'Cotización') && !cargandoVehiculos && errorVehiculos == null)
+                        DropdownButtonFormField<int>(
+                          value: vehiculoId,
+                          decoration: const InputDecoration(labelText: 'Vehículo'),
+                          items: vehiculos
+                              .map((v) => DropdownMenuItem(
+                                    value: v.id,
+                                    child: Text('${v.marca} ${v.modelo}'),
+                                  ))
+                              .toList(),
+                          onChanged: (value) {
+                            setState(() {
+                              vehiculoId = value;
+                            });
+                          },
+                          isExpanded: true,
+                          hint: const Text('Seleccione un vehículo'),
+                          validator: (v) => v == null ? 'Campo obligatorio' : null,
+                        ),
                       const SizedBox(height: 8),
                       Text('Status: $status'),
                     ],
