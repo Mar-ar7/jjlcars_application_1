@@ -407,19 +407,6 @@ class _CitasScreenState extends State<CitasScreen> {
                                       color: Colors.red,
                                       onPressed: () => _confirmarEliminarCita(cita),
                                     ),
-                                    DropdownButton<String>(
-                                      value: cita.status,
-                                      items: const [
-                                        DropdownMenuItem(value: 'Pendiente', child: Text('Pendiente')),
-                                        DropdownMenuItem(value: 'Aprobada', child: Text('Aprobada')),
-                                        DropdownMenuItem(value: 'Cancelada', child: Text('Cancelada')),
-                                      ],
-                                      onChanged: (nuevoStatus) {
-                                        if (nuevoStatus != null && nuevoStatus != cita.status) {
-                                          _actualizarStatus(cita, nuevoStatus);
-                                        }
-                                      },
-                                    ),
                                   ],
                                 ),
                               ],
