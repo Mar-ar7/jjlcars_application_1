@@ -294,14 +294,18 @@ class _CitasScreenState extends State<CitasScreen> {
                             );
                             if (esEdicion) {
                               await _apiService.actualizarCita(nuevaCita);
-                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Cita actualizada')));
+                              if (mounted) {
+                                Navigator.pop(context);
+                                _cargarCitas();
+                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Cita actualizada')));
+                              }
                             } else {
                               await _apiService.crearCita(nuevaCita);
-                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Cita creada')));
-                            }
-                            if (mounted) {
-                              Navigator.pop(context);
-                              _cargarCitas();
+                              if (mounted) {
+                                Navigator.pop(context);
+                                _cargarCitas();
+                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Cita creada')));
+                              }
                             }
                           } catch (e) {
                             ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));

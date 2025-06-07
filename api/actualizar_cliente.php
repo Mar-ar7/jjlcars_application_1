@@ -8,7 +8,9 @@ try {
     $data = json_decode(file_get_contents('php://input'), true);
     
     if (!isset($data['id'])) {
-        throw new Exception('ID de cliente requerido');
+        http_response_code(400);
+        echo json_encode(['success' => false, 'error' => 'ID de cliente requerido']);
+        exit;
     }
 
     $conexion = new PDO(

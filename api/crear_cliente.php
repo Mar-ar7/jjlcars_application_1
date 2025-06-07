@@ -8,7 +8,9 @@ try {
     $data = json_decode(file_get_contents('php://input'), true);
     
     if (!isset($data['nombre']) || !isset($data['correo'])) {
-        throw new Exception('Nombre y correo son requeridos');
+        http_response_code(400);
+        echo json_encode(['success' => false, 'error' => 'Nombre y correo son requeridos']);
+        exit;
     }
 
     $conexion = new PDO(
