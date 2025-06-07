@@ -60,24 +60,6 @@ class CustomDrawer extends StatelessWidget {
                 title: 'Vehículos',
                 route: '/vehiculos',
               ),
-              _buildDrawerItem(
-                context: context,
-                icon: Icons.analytics_outlined,
-                title: 'Proyecciones',
-                route: '/proyecciones',
-              ),
-              _buildDrawerItem(
-                context: context,
-                icon: Icons.point_of_sale_outlined,
-                title: 'Ventas',
-                route: '/ventas',
-              ),
-              _buildDrawerItem(
-                context: context,
-                icon: Icons.local_offer_outlined,
-                title: 'Marcas',
-                route: '/marcas',
-              ),
               const Divider(height: 1),
               _buildDrawerItem(
                 context: context,

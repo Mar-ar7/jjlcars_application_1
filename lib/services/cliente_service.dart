@@ -52,7 +52,8 @@ class ClienteService {
   Future<Cliente> actualizarCliente(Map<String, String> fields) async {
     final response = await http.post(
       Uri.parse('$baseUrl/actualizar_cliente.php'),
-      body: fields,
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode(fields),
     );
     final data = json.decode(response.body);
     if (data['success'] == true && data['cliente'] != null) {

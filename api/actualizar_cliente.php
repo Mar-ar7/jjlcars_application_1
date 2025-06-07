@@ -36,9 +36,14 @@ try {
         ':estado' => $data['estado']
     ]);
 
+    $stmt = $conexion->prepare("SELECT * FROM clientes WHERE id = ?");
+    $stmt->execute([$data['id']]);
+    $cliente = $stmt->fetch(PDO::FETCH_ASSOC);
+
     echo json_encode([
         'success' => true,
-        'mensaje' => 'Cliente actualizado correctamente'
+        'mensaje' => 'Cliente actualizado correctamente',
+        'cliente' => $cliente
     ]);
 
 } catch (Exception $e) {
