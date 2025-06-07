@@ -668,6 +668,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                     final cantidadValida = data['cantidad'] != null && (data['cantidad'] is int || int.tryParse(data['cantidad'].toString()) != null);
                                     return marcaValida && cantidadValida;
                                   }).toList();
+                                  print('DEBUG vehiculosPorMarca: [32m[1m[4m[7m' + _vehiculosPorMarca.toString() + '\u001b[0m');
+                                  print('DEBUG vehiculosValidos: ' + vehiculosValidos.toString());
                                   if (vehiculosValidos.isEmpty) {
                                     return Center(child: Text('No hay datos válidos para mostrar'));
                                   }
