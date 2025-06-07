@@ -26,11 +26,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             echo json_encode(['success' => false, 'error' => 'Tipo de archivo no permitido. Solo se permiten imágenes (jpg, jpeg, png, gif, bmp, webp).']);
             exit;
         }
-        $dir = 'avatars/';
-        if (!is_dir($dir)) mkdir($dir, 0777, true);
-        $filename = $dir . time() . '_' . basename($_FILES['avatar']['name']);
-        if (move_uploaded_file($_FILES['avatar']['tmp_name'], $filename)) {
-            $avatar = $filename;
+        // Guardar en la carpeta pública avatars/
+        $dir = realpath(__DIR__ . '/../avatars/');
+        if (!$dir) {
+            $dir = __DIR__ . '/../avatars/';
+            if (!is_dir($dir)) mkdir($dir, 0777, true);
+        }
+        $filename = time() . '_' . basename($_FILES['avatar']['name']);
+        $filepath = $dir . DIRECTORY_SEPARATOR . $filename;
+        if (move_uploaded_file($_FILES['avatar']['tmp_name'], $filepath)) {
+            $avatar = 'avatars/' . $filename; // Ruta relativa pública
         } else {
             echo json_encode(['success' => false, 'error' => 'Error al subir imagen']);
             exit;
@@ -74,6 +79,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmtUser = $conexion->prepare('SELECT id, Usuario, Nombre, TipoUsuario, estado, avatar FROM usuarios WHERE id = ?');
         $stmtUser->execute([$id]);
         $usuario = $stmtUser->fetch(PDO::FETCH_ASSOC);
+        if ($usuario && isset($usuario['avatar']) && $usuario['avatar']) {
+            $usuario['avatar'] = $usuario['avatar']; // Siempre será avatars/archivo.png
+        }
         echo json_encode(['success' => true, 'usuario' => $usuario]);
     } else {
         echo json_encode(['success' => false, 'error' => 'Error al actualizar usuario']);
