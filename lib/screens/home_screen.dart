@@ -205,33 +205,46 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         },
       );
       if (response.statusCode == 200) {
-        final decoded = json.decode(response.body);
-        final lista = decoded['data'];
-        if (lista is List) {
-          _vehiculosPorMarca = lista
-              .where((item) => item is Map)
-              .map((item) => Map<String, dynamic>.from(item as Map))
-              .where((item) =>
-                  item['marca'] != null &&
-                  item['marca'] is String &&
-                  item['marca'].toString().isNotEmpty &&
-                  item['cantidad'] != null &&
-                  (item['cantidad'] is int || int.tryParse(item['cantidad'].toString()) != null))
-              .map((item) => {
-                    'marca': item['marca'].toString(),
-                    'cantidad': item['cantidad'] is int
-                        ? item['cantidad']
-                        : int.tryParse(item['cantidad'].toString()) ?? 0
-                  })
-              .toList();
-          setState(() {
-            _isLoadingVehiculosMarca = false;
-          });
-        } else {
+        try {
+          final decoded = json.decode(response.body);
+          final lista = decoded['data'];
+          if (lista is List) {
+            final vehiculos = <Map<String, dynamic>>[];
+            for (var item in lista) {
+              try {
+                if (item is Map) {
+                  final marca = item['marca']?.toString() ?? '';
+                  final cantidadRaw = item['cantidad'];
+                  int cantidad = 0;
+                  if (cantidadRaw is int) {
+                    cantidad = cantidadRaw;
+                  } else if (cantidadRaw is String && int.tryParse(cantidadRaw) != null) {
+                    cantidad = int.parse(cantidadRaw);
+                  }
+                  if (marca.isNotEmpty && cantidad > 0) {
+                    vehiculos.add({'marca': marca, 'cantidad': cantidad});
+                  }
+                }
+              } catch (_) {
+                // Ignora cualquier item corrupto
+              }
+            }
+            setState(() {
+              _vehiculosPorMarca = vehiculos;
+              _isLoadingVehiculosMarca = false;
+            });
+          } else {
+            setState(() {
+              _vehiculosPorMarca = [];
+              _isLoadingVehiculosMarca = false;
+              _vehiculosMarcaError = 'La respuesta de vehículos no es una lista válida.';
+            });
+          }
+        } catch (e) {
           setState(() {
             _vehiculosPorMarca = [];
             _isLoadingVehiculosMarca = false;
-            _vehiculosMarcaError = 'La respuesta de vehículos no es una lista válida.';
+            _vehiculosMarcaError = 'Error al cargar vehículos: $e';
           });
         }
       } else {
