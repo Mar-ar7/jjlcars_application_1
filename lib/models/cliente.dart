@@ -2,13 +2,13 @@ class Cliente {
   final int id;
   final String nombre;
   final String correo;
-  final String? mensaje;
+  final String mensaje;
 
   Cliente({
     required this.id,
     required this.nombre,
     required this.correo,
-    this.mensaje,
+    this.mensaje = '',
   });
 
   factory Cliente.fromJson(Map<String, dynamic> json) {
@@ -16,7 +16,7 @@ class Cliente {
       id: int.tryParse(json['id']?.toString() ?? '0') ?? 0,
       nombre: json['nombre'],
       correo: json['correo'],
-      mensaje: json['mensaje'], // Puede ser null
+      mensaje: json['mensaje'] ?? '',
     );
   }
 

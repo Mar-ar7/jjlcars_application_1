@@ -271,6 +271,99 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     });
   }
 
+  void _mostrarFormularioPerfil() async {
+    final formKey = GlobalKey<FormState>();
+    final nombreController = TextEditingController(text: _usuario.nombre);
+    File? imagenFile;
+    String? imagenUrl = _usuario.avatar != null && _usuario.avatar!.isNotEmpty ? 'http://10.0.2.2/jjlcars_application_1/${_usuario.avatar}' : null;
+    bool isLoading = false;
+
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text('Editar Perfil'),
+              content: SingleChildScrollView(
+                child: Form(
+                  key: formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      GestureDetector(
+                        onTap: () async {
+                          final picker = ImagePicker();
+                          final picked = await picker.pickImage(source: ImageSource.gallery);
+                          if (picked != null) {
+                            setState(() {
+                              imagenFile = File(picked.path);
+                              imagenUrl = null;
+                            });
+                          }
+                        },
+                        child: Container(
+                          width: 120,
+                          height: 120,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[200],
+                            borderRadius: BorderRadius.circular(60),
+                          ),
+                          child: imagenFile != null
+                              ? Image.file(imagenFile!, fit: BoxFit.cover)
+                              : ((imagenUrl ?? '').isNotEmpty)
+                                  ? Image.network(imagenUrl!, fit: BoxFit.cover)
+                                  : const Icon(Icons.camera_alt, size: 48, color: Colors.grey),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: nombreController,
+                        decoration: const InputDecoration(labelText: 'Nombre'),
+                        validator: (v) => v == null || v.isEmpty ? 'Campo obligatorio' : null,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancelar'),
+                ),
+                ElevatedButton(
+                  onPressed: isLoading
+                      ? null
+                      : () async {
+                          if (!formKey.currentState!.validate()) return;
+                          setState(() => isLoading = true);
+                          try {
+                            await _usuarioService.actualizarPerfil(
+                              id: _usuario.id,
+                              nombre: nombreController.text,
+                              avatar: imagenFile,
+                            );
+                            await _refrescarUsuario();
+                            if (mounted) {
+                              Navigator.pop(context);
+                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Perfil actualizado')));
+                            }
+                          } catch (e) {
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+                          } finally {
+                            setState(() => isLoading = false);
+                          }
+                        },
+                  child: const Text('Guardar'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
   void _mostrarMenuPerfil(BuildContext context) async {
     await showGeneralDialog(
       context: context,
@@ -317,15 +410,18 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                           ],
                         ),
                       ),
-                      CircleAvatar(
-                        radius: 48,
-                        backgroundColor: Colors.white,
-                        backgroundImage: (_usuario.avatar != null && _usuario.avatar!.isNotEmpty)
-                            ? NetworkImage('http://10.0.2.2/jjlcars_application_1/[1m${_usuario.avatar}?v=${DateTime.now().millisecondsSinceEpoch}[0m')
-                            : null,
-                        child: (_usuario.avatar == null || _usuario.avatar!.isEmpty)
-                            ? Text(_usuario.nombre.isNotEmpty ? _usuario.nombre[0].toUpperCase() : '?', style: const TextStyle(fontSize: 40, color: Color(0xFF1565C0)))
-                            : null,
+                      GestureDetector(
+                        onTap: _mostrarFormularioPerfil,
+                        child: CircleAvatar(
+                          radius: 48,
+                          backgroundColor: Colors.white,
+                          backgroundImage: (_usuario.avatar != null && _usuario.avatar!.isNotEmpty)
+                              ? NetworkImage('http://10.0.2.2/jjlcars_application_1/${_usuario.avatar}?v=${DateTime.now().millisecondsSinceEpoch}')
+                              : null,
+                          child: (_usuario.avatar == null || _usuario.avatar!.isEmpty)
+                              ? Text(_usuario.nombre.isNotEmpty ? _usuario.nombre[0].toUpperCase() : '?', style: const TextStyle(fontSize: 40, color: Color(0xFF1565C0)))
+                              : null,
+                        ),
                       ),
                       const SizedBox(height: 16),
                       Text(
@@ -352,55 +448,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                           children: [
                             ListTile(
                               leading: const Icon(Icons.image, color: Colors.white, size: 32),
-                              title: const Text('Cambiar imagen', style: TextStyle(color: Colors.white, fontSize: 18)),
-                              onTap: () async {
+                              title: const Text('Editar perfil', style: TextStyle(color: Colors.white, fontSize: 18)),
+                              onTap: () {
                                 Navigator.pop(context);
-                                final picker = ImagePicker();
-                                final picked = await picker.pickImage(source: ImageSource.gallery);
-                                if (picked != null) {
-                                  try {
-                                    await _usuarioService.actualizarPerfil(id: _usuario.id, avatar: File(picked.path));
-                                    await _refrescarUsuario();
-                                  } catch (e) {
-                                    if (mounted) {
-                                      Future.delayed(Duration.zero, () {
-                                        ScaffoldMessenger.of(_scaffoldContext).showSnackBar(SnackBar(content: Text('Error: $e')));
-                                      });
-                                    }
-                                  }
-                                }
-                              },
-                            ),
-                            const Divider(color: Colors.white24, height: 1),
-                            ListTile(
-                              leading: const Icon(Icons.edit, color: Colors.white, size: 32),
-                              title: const Text('Cambiar nombre', style: TextStyle(color: Colors.white, fontSize: 18)),
-                              onTap: () async {
-                                Navigator.pop(context);
-                                final controller = TextEditingController(text: _usuario.nombre);
-                                final ok = await showDialog<bool>(
-                                  context: context,
-                                  builder: (context) => AlertDialog(
-                                    title: const Text('Editar nombre'),
-                                    content: TextField(controller: controller),
-                                    actions: [
-                                      TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancelar')),
-                                      ElevatedButton(onPressed: () => Navigator.pop(context, true), child: const Text('Guardar')),
-                                    ],
-                                  ),
-                                );
-                                if (ok == true && controller.text.isNotEmpty) {
-                                  try {
-                                    await _usuarioService.actualizarPerfil(id: _usuario.id, nombre: controller.text);
-                                    await _refrescarUsuario();
-                                  } catch (e) {
-                                    if (mounted) {
-                                      Future.delayed(Duration.zero, () {
-                                        ScaffoldMessenger.of(_scaffoldContext).showSnackBar(SnackBar(content: Text('Error: $e')));
-                                      });
-                                    }
-                                  }
-                                }
+                                _mostrarFormularioPerfil();
                               },
                             ),
                           ],
