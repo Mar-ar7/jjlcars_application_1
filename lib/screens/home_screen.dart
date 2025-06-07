@@ -12,6 +12,8 @@ import 'package:intl/intl.dart';
 import 'package:image_picker/image_picker.dart';
 import '../models/usuario.dart';
 import '../services/usuario_service.dart';
+import '../services/vehiculo_service.dart';
+import '../models/vehiculo.dart';
 
 // Define a simple data class for the chart (Ensuring it's at the top level)
 class CitaData {
@@ -62,6 +64,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   late Usuario _usuario;
   final UsuarioService _usuarioService = UsuarioService();
   late BuildContext _scaffoldContext;
+  final VehiculoService _vehiculoService = VehiculoService();
+  List<Vehiculo> _vehiculos = [];
+  bool _isLoadingVehiculos = true;
+  String? _vehiculosError;
 
   @override
   void initState() {
@@ -69,7 +75,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     _usuario = Usuario.fromJson(widget.userData);
     _loadAllStats();
-    _loadVehiculosPorMarca();
+    _loadVehiculosLocales();
     _loadCitasPorTipoYMes();
   }
 
@@ -191,72 +197,22 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     }
   }
 
-  Future<void> _loadVehiculosPorMarca() async {
+  Future<void> _loadVehiculosLocales() async {
     setState(() {
-      _isLoadingVehiculosMarca = true;
-      _vehiculosMarcaError = null;
+      _isLoadingVehiculos = true;
+      _vehiculosError = null;
     });
     try {
-      final response = await http.get(
-        Uri.parse('http://10.0.2.2/jjlcars_application_1/api/vehiculos_stats.php'),
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
-      );
-      if (response.statusCode == 200) {
-        try {
-          final decoded = json.decode(response.body);
-          final lista = decoded['data'];
-          if (lista is List) {
-            final vehiculos = <Map<String, dynamic>>[];
-            for (var item in lista) {
-              // Solo procesa si es Map y tiene las claves correctas
-              if (item is Map && item.containsKey('marca') && item.containsKey('cantidad')) {
-                final marca = item['marca']?.toString() ?? '';
-                final cantidadRaw = item['cantidad'];
-                int cantidad = 0;
-                if (cantidadRaw is int) {
-                  cantidad = cantidadRaw;
-                } else if (cantidadRaw is String && int.tryParse(cantidadRaw) != null) {
-                  cantidad = int.parse(cantidadRaw);
-                }
-                if (marca.isNotEmpty && cantidad > 0) {
-                  vehiculos.add({'marca': marca, 'cantidad': cantidad});
-                }
-              }
-              // Si no es Map o no tiene las claves, lo ignora completamente
-            }
-            setState(() {
-              _vehiculosPorMarca = vehiculos;
-              _isLoadingVehiculosMarca = false;
-            });
-          } else {
-            setState(() {
-              _vehiculosPorMarca = [];
-              _isLoadingVehiculosMarca = false;
-              _vehiculosMarcaError = 'La respuesta de vehículos no es una lista válida.';
-            });
-          }
-        } catch (e) {
-          setState(() {
-            _vehiculosPorMarca = [];
-            _isLoadingVehiculosMarca = false;
-            _vehiculosMarcaError = 'Error al cargar vehículos: $e';
-          });
-        }
-      } else {
-        setState(() {
-          _vehiculosPorMarca = [];
-          _isLoadingVehiculosMarca = false;
-          _vehiculosMarcaError = 'Error del servidor: $response.statusCode';
-        });
-      }
+      final vehiculos = await _vehiculoService.obtenerVehiculos();
+      setState(() {
+        _vehiculos = vehiculos;
+        _isLoadingVehiculos = false;
+      });
     } catch (e) {
       setState(() {
-        _vehiculosPorMarca = [];
-        _isLoadingVehiculosMarca = false;
-        _vehiculosMarcaError = 'Error al cargar vehículos: $e';
+        _vehiculos = [];
+        _isLoadingVehiculos = false;
+        _vehiculosError = 'Error al cargar vehículos: $e';
       });
     }
   }
@@ -691,22 +647,23 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   ),
                 ),
                 const SizedBox(height: 16),
-                _isLoadingVehiculosMarca
+                _isLoadingVehiculos
                     ? Center(child: CircularProgressIndicator())
-                    : _vehiculosMarcaError != null
-                        ? Center(child: Text('Error al cargar vehículos: $_vehiculosMarcaError'))
-                        : _vehiculosPorMarca.isEmpty
-                            ? Center(child: Text('No hay datos de vehículos para mostrar'))
+                    : _vehiculosError != null
+                        ? Center(child: Text('Error al cargar vehículos: $_vehiculosError'))
+                        : _vehiculos.isEmpty
+                            ? Center(child: Text('No hay vehículos para mostrar'))
                             : Builder(
                                 builder: (context) {
-                                  final vehiculosValidos = _vehiculosPorMarca.where((data) {
-                                    final marcaValida = data['marca'] != null && data['marca'].toString().isNotEmpty;
-                                    final cantidadValida = data['cantidad'] != null && (data['cantidad'] is int || int.tryParse(data['cantidad'].toString()) != null);
-                                    return marcaValida && cantidadValida;
-                                  }).toList();
-                                  print('DEBUG vehiculosPorMarca: [32m[1m[4m[7m' + _vehiculosPorMarca.toString() + '\u001b[0m');
-                                  print('DEBUG vehiculosValidos: ' + vehiculosValidos.toString());
-                                  if (vehiculosValidos.isEmpty) {
+                                  // Agrupar por marca
+                                  final conteoPorMarca = <String, int>{};
+                                  for (var v in _vehiculos) {
+                                    conteoPorMarca[v.marca] = (conteoPorMarca[v.marca] ?? 0) + 1;
+                                  }
+                                  final datosGrafica = conteoPorMarca.entries
+                                      .map((e) => {'marca': e.key, 'cantidad': e.value})
+                                      .toList();
+                                  if (datosGrafica.isEmpty) {
                                     return Center(child: Text('No hay datos válidos para mostrar'));
                                   }
                                   return SfCartesianChart(
@@ -714,9 +671,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                     primaryYAxis: NumericAxis(title: AxisTitle(text: 'Cantidad')),
                                     series: <CartesianSeries<Map<String, dynamic>, String>>[
                                       ColumnSeries<Map<String, dynamic>, String>(
-                                        dataSource: vehiculosValidos,
+                                        dataSource: datosGrafica,
                                         xValueMapper: (data, _) => data['marca'].toString(),
-                                        yValueMapper: (data, _) => data['cantidad'] is int ? data['cantidad'] : int.tryParse(data['cantidad'].toString()) ?? 0,
+                                        yValueMapper: (data, _) => data['cantidad'] as int,
                                         dataLabelSettings: DataLabelSettings(isVisible: true),
                                         pointColorMapper: (data, _) {
                                           switch ((data['marca'] as String).toLowerCase()) {
