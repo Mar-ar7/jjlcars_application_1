@@ -321,7 +321,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         radius: 48,
                         backgroundColor: Colors.white,
                         backgroundImage: (_usuario.avatar != null && _usuario.avatar!.isNotEmpty)
-                            ? NetworkImage('http://10.0.2.2/jjlcars_application_1/${_usuario.avatar}')
+                            ? NetworkImage('http://10.0.2.2/jjlcars_application_1/[1m${_usuario.avatar}?v=${DateTime.now().millisecondsSinceEpoch}[0m')
                             : null,
                         child: (_usuario.avatar == null || _usuario.avatar!.isEmpty)
                             ? Text(_usuario.nombre.isNotEmpty ? _usuario.nombre[0].toUpperCase() : '?', style: const TextStyle(fontSize: 40, color: Color(0xFF1565C0)))

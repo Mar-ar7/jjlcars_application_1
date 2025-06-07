@@ -36,11 +36,12 @@ class ClienteService {
     }
   }
 
-  Future<Cliente> crearCliente(Map<String, String> fields) async {
+  Future<Cliente> crearCliente(Map<String, dynamic> fields) async {
+    final stringFields = fields.map((key, value) => MapEntry(key, value?.toString() ?? ''));
     final response = await http.post(
       Uri.parse('$baseUrl/crear_cliente.php'),
       headers: {'Content-Type': 'application/json'},
-      body: json.encode(fields),
+      body: json.encode(stringFields),
     );
     final data = json.decode(response.body);
     if (data['success'] == true && data['cliente'] != null) {
@@ -50,11 +51,12 @@ class ClienteService {
     }
   }
 
-  Future<Cliente> actualizarCliente(Map<String, String> fields) async {
+  Future<Cliente> actualizarCliente(Map<String, dynamic> fields) async {
+    final stringFields = fields.map((key, value) => MapEntry(key, value?.toString() ?? ''));
     final response = await http.post(
       Uri.parse('$baseUrl/actualizar_cliente.php'),
       headers: {'Content-Type': 'application/json'},
-      body: json.encode(fields),
+      body: json.encode(stringFields),
     );
     final data = json.decode(response.body);
     if (data['success'] == true && data['cliente'] != null) {

@@ -13,7 +13,7 @@ class Cliente {
 
   factory Cliente.fromJson(Map<String, dynamic> json) {
     return Cliente(
-      id: int.parse(json['id'].toString()),
+      id: int.tryParse(json['id']?.toString() ?? '0') ?? 0,
       nombre: json['nombre'],
       correo: json['correo'],
       mensaje: json['mensaje'], // Puede ser null
