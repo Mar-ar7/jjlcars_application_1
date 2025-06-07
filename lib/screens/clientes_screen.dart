@@ -113,7 +113,7 @@ class _ClientesScreenState extends State<ClientesScreen> {
                             final fields = {
                               'nombre': nombreController.text,
                               'correo': correoController.text,
-                              'mensaje': mensajeController.text,
+                              'mensaje': mensajeController.text.isNotEmpty ? mensajeController.text : '',
                             };
                             if (cliente != null) fields['id'] = cliente.id.toString();
                             if (cliente == null) {

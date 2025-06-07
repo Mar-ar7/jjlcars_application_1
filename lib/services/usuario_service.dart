@@ -260,6 +260,11 @@ class UsuarioService {
     request.fields['id'] = id.toString();
     if (nombre != null) request.fields['nombre'] = nombre;
     if (avatar != null) {
+      final extensionesPermitidas = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
+      final extension = avatar.path.split('.').last.toLowerCase();
+      if (!extensionesPermitidas.contains(extension)) {
+        throw Exception('Tipo de archivo no permitido. Solo se permiten imágenes (jpg, jpeg, png, gif, bmp, webp).');
+      }
       request.files.add(await http.MultipartFile.fromPath('avatar', avatar.path));
     }
     var response = await request.send();
