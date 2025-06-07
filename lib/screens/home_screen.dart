@@ -211,23 +211,20 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           if (lista is List) {
             final vehiculos = <Map<String, dynamic>>[];
             for (var item in lista) {
-              try {
-                if (item is Map) {
-                  final marca = item['marca']?.toString() ?? '';
-                  final cantidadRaw = item['cantidad'];
-                  int cantidad = 0;
-                  if (cantidadRaw is int) {
-                    cantidad = cantidadRaw;
-                  } else if (cantidadRaw is String && int.tryParse(cantidadRaw) != null) {
-                    cantidad = int.parse(cantidadRaw);
-                  }
-                  if (marca.isNotEmpty && cantidad > 0) {
-                    vehiculos.add({'marca': marca, 'cantidad': cantidad});
-                  }
+              if (item is Map<String, dynamic>) {
+                final marca = item['marca']?.toString() ?? '';
+                final cantidadRaw = item['cantidad'];
+                int cantidad = 0;
+                if (cantidadRaw is int) {
+                  cantidad = cantidadRaw;
+                } else if (cantidadRaw is String && int.tryParse(cantidadRaw) != null) {
+                  cantidad = int.parse(cantidadRaw);
                 }
-              } catch (_) {
-                // Ignora cualquier item corrupto
+                if (marca.isNotEmpty && cantidad > 0) {
+                  vehiculos.add({'marca': marca, 'cantidad': cantidad});
+                }
               }
+              // Si no es Map<String, dynamic>, lo ignora completamente
             }
             setState(() {
               _vehiculosPorMarca = vehiculos;
