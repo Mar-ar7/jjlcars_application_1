@@ -38,10 +38,6 @@ try {
         $cliente['id'] = isset($cliente['id']) ? (string)$cliente['id'] : '';
         $cliente['nombre'] = $cliente['nombre'] ?? '';
         $cliente['correo'] = $cliente['correo'] ?? '';
-        $cliente['telefono'] = $cliente['telefono'] ?? '';
-        $cliente['direccion'] = $cliente['direccion'] ?? '';
-        $cliente['estado'] = $cliente['estado'] ?? 'Activo';
-        $cliente['mensaje'] = $cliente['mensaje'] ?? null;
     }
 
     $response = [

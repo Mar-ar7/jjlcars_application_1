@@ -20,8 +20,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Manejar subida de imagen si existe
     if (isset($_FILES['avatar']) && $_FILES['avatar']['error'] == 0) {
-        if (strpos($_FILES['avatar']['type'], 'image/') !== 0) {
-            echo json_encode(['success' => false, 'error' => 'Tipo de archivo no permitido. Solo se permiten imágenes.']);
+        $extensionesPermitidas = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
+        $extension = strtolower(pathinfo($_FILES['avatar']['name'], PATHINFO_EXTENSION));
+        if (!in_array($extension, $extensionesPermitidas)) {
+            echo json_encode(['success' => false, 'error' => 'Tipo de archivo no permitido. Solo se permiten imágenes (jpg, jpeg, png, gif, bmp, webp).']);
             exit;
         }
         $dir = 'avatars/';

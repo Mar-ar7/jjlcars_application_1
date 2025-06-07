@@ -31,11 +31,11 @@ try {
     $nombreImagen = $vehiculo['imagen'];
     if (isset($_FILES['imagen']) && $_FILES['imagen']['error'] === UPLOAD_ERR_OK) {
         $imagen = $_FILES['imagen'];
-        $tipoImagen = $imagen['type'];
-        if (strpos($tipoImagen, 'image/') !== 0) {
-            throw new Exception('Tipo de archivo no permitido. Solo se permiten imágenes.');
+        $extensionesPermitidas = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
+        $extension = strtolower(pathinfo($imagen['name'], PATHINFO_EXTENSION));
+        if (!in_array($extension, $extensionesPermitidas)) {
+            throw new Exception('Tipo de archivo no permitido. Solo se permiten imágenes (jpg, jpeg, png, gif, bmp, webp).');
         }
-        $extension = pathinfo($imagen['name'], PATHINFO_EXTENSION);
         $nombreUnico = uniqid() . '_' . $imagen['name'];
         $directorioDestino = '../Imagen/';
         if (!file_exists($directorioDestino)) {

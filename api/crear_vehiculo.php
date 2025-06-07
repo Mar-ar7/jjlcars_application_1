@@ -34,13 +34,14 @@ try {
         $rutaTemporal = $imagen['tmp_name'];
         $error = $imagen['error'];
 
-        // Verificar tipo de archivo
-        if (strpos($tipoImagen, 'image/') !== 0) {
-            throw new Exception('Tipo de archivo no permitido. Solo se permiten imágenes.');
+        // Validar por extensión de archivo, no por tipo MIME
+        $extensionesPermitidas = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
+        $extension = strtolower(pathinfo($nombreImagen, PATHINFO_EXTENSION));
+        if (!in_array($extension, $extensionesPermitidas)) {
+            throw new Exception('Tipo de archivo no permitido. Solo se permiten imágenes (jpg, jpeg, png, gif, bmp, webp).');
         }
 
         // Generar nombre único para la imagen
-        $extension = pathinfo($nombreImagen, PATHINFO_EXTENSION);
         $nombreUnico = uniqid() . '_' . $nombreImagen;
         $directorioDestino = '../Imagen/';
         if (!file_exists($directorioDestino)) {
