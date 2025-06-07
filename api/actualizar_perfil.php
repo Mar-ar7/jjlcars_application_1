@@ -12,9 +12,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $nombre = $_POST['nombre'] ?? null;
     }
     $avatar = null;
-    if (!$id) {
+    if (!$id || ($nombre !== null && trim($nombre) === '')) {
         http_response_code(400);
-        echo json_encode(['success' => false, 'error' => 'ID de usuario requerido']);
+        echo json_encode(['success' => false, 'error' => 'ID de usuario y nombre son requeridos']);
         exit;
     }
 
@@ -63,14 +63,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $params[] = $avatar;
     }
     if (empty($campos)) {
-        echo json_encode(['success' => true, 'avatar' => $avatar, 'nombre' => $nombre]);
+        echo json_encode(['success' => true, 'avatar' => $avatar ?? '', 'nombre' => $nombre ?? '']);
         exit;
     }
     $params[] = $id;
     $sql = 'UPDATE usuarios SET ' . implode(', ', $campos) . ' WHERE id = ?';
     $stmt = $conexion->prepare($sql);
     if ($stmt->execute($params)) {
-        echo json_encode(['success' => true, 'avatar' => $avatar ? $avatar : null, 'nombre' => $nombre]);
+        echo json_encode(['success' => true, 'avatar' => $avatar ? $avatar : '', 'nombre' => $nombre ?? '']);
     } else {
         echo json_encode(['success' => false, 'error' => 'Error al actualizar usuario']);
     }

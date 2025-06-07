@@ -8,9 +8,9 @@ try {
     $input = file_get_contents('php://input');
     $data = json_decode($input, true);
     
-    if (!isset($data['id'])) {
+    if (!isset($data['id']) || empty($data['nombre']) || empty($data['correo'])) {
         http_response_code(400);
-        echo json_encode(['success' => false, 'error' => 'ID de cliente requerido']);
+        echo json_encode(['success' => false, 'error' => 'ID, nombre y correo son requeridos']);
         exit;
     }
 
@@ -33,6 +33,13 @@ try {
     $stmt = $conexion->prepare("SELECT * FROM clientes WHERE id = ?");
     $stmt->execute([$data['id']]);
     $cliente = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($cliente) {
+        $cliente['id'] = isset($cliente['id']) ? (string)$cliente['id'] : '';
+        $cliente['nombre'] = $cliente['nombre'] ?? '';
+        $cliente['correo'] = $cliente['correo'] ?? '';
+        $cliente['mensaje'] = $cliente['mensaje'] ?? '';
+    }
 
     echo json_encode([
         'success' => true,

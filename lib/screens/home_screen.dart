@@ -320,7 +320,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                       TextFormField(
                         controller: nombreController,
                         decoration: const InputDecoration(labelText: 'Nombre'),
-                        validator: (v) => v == null || v.isEmpty ? 'Campo obligatorio' : null,
+                        validator: (v) => v == null || v.trim().isEmpty ? 'Campo obligatorio' : null,
                       ),
                     ],
                   ),
@@ -340,7 +340,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                           try {
                             await _usuarioService.actualizarPerfil(
                               id: _usuario.id,
-                              nombre: nombreController.text,
+                              nombre: nombreController.text.trim(),
                               avatar: imagenFile,
                             );
                             await _refrescarUsuario();

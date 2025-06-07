@@ -37,6 +37,10 @@ class ClienteService {
   }
 
   Future<Cliente> crearCliente(Map<String, dynamic> fields) async {
+    if ((fields['nombre'] == null || fields['nombre'].toString().trim().isEmpty) ||
+        (fields['correo'] == null || fields['correo'].toString().trim().isEmpty)) {
+      throw Exception('Nombre y correo son obligatorios');
+    }
     final stringFields = fields.map((key, value) => MapEntry(key, value?.toString() ?? ''));
     final response = await http.post(
       Uri.parse('$baseUrl/crear_cliente.php'),
@@ -52,6 +56,10 @@ class ClienteService {
   }
 
   Future<Cliente> actualizarCliente(Map<String, dynamic> fields) async {
+    if ((fields['nombre'] == null || fields['nombre'].toString().trim().isEmpty) ||
+        (fields['correo'] == null || fields['correo'].toString().trim().isEmpty)) {
+      throw Exception('Nombre y correo son obligatorios');
+    }
     final stringFields = fields.map((key, value) => MapEntry(key, value?.toString() ?? ''));
     final response = await http.post(
       Uri.parse('$baseUrl/actualizar_cliente.php'),
