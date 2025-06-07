@@ -235,6 +235,13 @@ class _CitasScreenState extends State<CitasScreen> {
                             child: Text('Seleccione una hora', style: TextStyle(color: Colors.red, fontSize: 12)),
                           ),
                         ),
+                      (() {
+                        final vehiculoIds = vehiculos.map((v) => v.id).toList();
+                        if (vehiculoId == 0 || (vehiculoId != null && !vehiculoIds.contains(vehiculoId))) {
+                          vehiculoId = null;
+                        }
+                        return const SizedBox.shrink();
+                      })(),
                       if ((tipoCompra == 'Vehículo' || tipoCompra == 'Servicio menor') && !cargandoVehiculos && errorVehiculos == null)
                         DropdownButtonFormField<int>(
                           value: vehiculoId,
@@ -272,10 +279,6 @@ class _CitasScreenState extends State<CitasScreen> {
                           if (!formKey.currentState!.validate() || fecha == null || hora == null) return;
                           setState(() => isLoading = true);
                           try {
-                            final vehiculoIds = vehiculos.map((v) => v.id).toList();
-                            if (vehiculoId == 0 || (vehiculoId != null && !vehiculoIds.contains(vehiculoId))) {
-                              vehiculoId = null;
-                            }
                             final nuevaCita = Cita(
                               id: cita?.id ?? 0,
                               tipoCita: tipoCita,
