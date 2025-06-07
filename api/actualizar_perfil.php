@@ -20,6 +20,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Manejar subida de imagen si existe
     if (isset($_FILES['avatar']) && $_FILES['avatar']['error'] == 0) {
+        if (strpos($_FILES['avatar']['type'], 'image/') !== 0) {
+            echo json_encode(['success' => false, 'error' => 'Tipo de archivo no permitido. Solo se permiten imágenes.']);
+            exit;
+        }
         $dir = 'avatars/';
         if (!is_dir($dir)) mkdir($dir, 0777, true);
         $filename = $dir . time() . '_' . basename($_FILES['avatar']['name']);
@@ -64,7 +68,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $sql = 'UPDATE usuarios SET ' . implode(', ', $campos) . ' WHERE id = ?';
     $stmt = $conexion->prepare($sql);
     if ($stmt->execute($params)) {
-        echo json_encode(['success' => true, 'avatar' => $avatar, 'nombre' => $nombre]);
+        echo json_encode(['success' => true, 'avatar' => $avatar ? $avatar : null, 'nombre' => $nombre]);
     } else {
         echo json_encode(['success' => false, 'error' => 'Error al actualizar usuario']);
     }

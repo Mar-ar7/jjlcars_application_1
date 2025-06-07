@@ -32,9 +32,8 @@ try {
     if (isset($_FILES['imagen']) && $_FILES['imagen']['error'] === UPLOAD_ERR_OK) {
         $imagen = $_FILES['imagen'];
         $tipoImagen = $imagen['type'];
-        $tiposPermitidos = ['image/jpeg', 'image/png', 'image/jpg'];
-        if (!in_array($tipoImagen, $tiposPermitidos)) {
-            throw new Exception('Tipo de archivo no permitido. Solo JPG y PNG');
+        if (strpos($tipoImagen, 'image/') !== 0) {
+            throw new Exception('Tipo de archivo no permitido. Solo se permiten imágenes.');
         }
         $extension = pathinfo($imagen['name'], PATHINFO_EXTENSION);
         $nombreUnico = uniqid() . '_' . $imagen['name'];

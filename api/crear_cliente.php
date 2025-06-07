@@ -21,16 +21,12 @@ try {
         array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION)
     );
 
-    $sql = "INSERT INTO clientes (nombre, correo, telefono, direccion, estado) 
-            VALUES (:nombre, :correo, :telefono, :direccion, :estado)";
+    $sql = "INSERT INTO clientes (nombre, correo) VALUES (:nombre, :correo)";
 
     $stmt = $conexion->prepare($sql);
     $stmt->execute([
         ':nombre' => $data['nombre'],
-        ':correo' => $data['correo'],
-        ':telefono' => $data['telefono'] ?? '',
-        ':direccion' => $data['direccion'] ?? '',
-        ':estado' => $data['estado'] ?? 'Activo'
+        ':correo' => $data['correo']
     ]);
 
     $id = $conexion->lastInsertId();

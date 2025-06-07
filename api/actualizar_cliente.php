@@ -21,22 +21,13 @@ try {
         array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION)
     );
 
-    $sql = "UPDATE clientes SET 
-            nombre = :nombre,
-            correo = :correo,
-            telefono = :telefono,
-            direccion = :direccion,
-            estado = :estado
-            WHERE id = :id";
+    $sql = "UPDATE clientes SET nombre = :nombre, correo = :correo WHERE id = :id";
 
     $stmt = $conexion->prepare($sql);
     $stmt->execute([
         ':id' => $data['id'],
         ':nombre' => $data['nombre'],
-        ':correo' => $data['correo'],
-        ':telefono' => $data['telefono'] ?? '',
-        ':direccion' => $data['direccion'] ?? '',
-        ':estado' => $data['estado'] ?? 'Activo'
+        ':correo' => $data['correo']
     ]);
 
     $stmt = $conexion->prepare("SELECT * FROM clientes WHERE id = ?");

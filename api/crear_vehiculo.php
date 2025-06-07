@@ -35,9 +35,8 @@ try {
         $error = $imagen['error'];
 
         // Verificar tipo de archivo
-        $tiposPermitidos = ['image/jpeg', 'image/png', 'image/jpg'];
-        if (!in_array($tipoImagen, $tiposPermitidos)) {
-            throw new Exception('Tipo de archivo no permitido. Solo se permiten JPG y PNG');
+        if (strpos($tipoImagen, 'image/') !== 0) {
+            throw new Exception('Tipo de archivo no permitido. Solo se permiten imágenes.');
         }
 
         // Generar nombre único para la imagen
