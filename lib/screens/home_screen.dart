@@ -208,7 +208,22 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         final decoded = json.decode(response.body);
         if (decoded['success'] == true && decoded['data'] != null && decoded['data'] is List) {
           final lista = decoded['data'] as List;
-          final vehiculos = lista.where((item) => item is Map<String, dynamic>).map((item) => Map<String, dynamic>.from(item)).toList();
+          final vehiculos = lista.map((item) {
+            if (item is Map<String, dynamic>) {
+              final marca = item['marca']?.toString() ?? '';
+              final cantidadRaw = item['cantidad'];
+              int cantidad = 0;
+              if (cantidadRaw is int) {
+                cantidad = cantidadRaw;
+              } else if (cantidadRaw is String && int.tryParse(cantidadRaw) != null) {
+                cantidad = int.parse(cantidadRaw);
+              }
+              if (marca.isNotEmpty && cantidad > 0) {
+                return {'marca': marca, 'cantidad': cantidad};
+              }
+            }
+            return null;
+          }).where((item) => item != null).cast<Map<String, dynamic>>().toList();
           setState(() {
             _vehiculosPorMarca = vehiculos;
             _isLoadingVehiculosMarca = false;
