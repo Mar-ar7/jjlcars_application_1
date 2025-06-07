@@ -103,7 +103,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     await Future.wait([
       _loadCitaStats(),
       _loadClientStats(),
-      _loadVehiculoStats(),
     ]).catchError((e) { // Catch errors from Future.wait
        print('Error loading all stats: $e');
        // Individual error handling is done in each load method
@@ -156,35 +155,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           ScaffoldMessenger.of(_scaffoldContext).showSnackBar(
             SnackBar(
               content: Text('Error al cargar estadísticas de clientes: ${e.toString()}'),
-              duration: const Duration(seconds: 3),
-            ),
-          );
-        });
-      }
-    }
-  }
-
-  Future<void> _loadVehiculoStats() async {
-    setState(() {
-      _isLoadingVehiculoStats = true;
-      _vehiculoStatsError = null;
-    });
-    try {
-      final totalVehiculos = await _apiService.getVehiculoStats();
-      setState(() {
-        _totalVehiculos = totalVehiculos;
-        _isLoadingVehiculoStats = false;
-      });
-    } catch (e) {
-      setState(() {
-        _vehiculoStatsError = e.toString();
-        _isLoadingVehiculoStats = false;
-      });
-      if (mounted) {
-        Future.delayed(Duration.zero, () {
-          ScaffoldMessenger.of(_scaffoldContext).showSnackBar(
-            SnackBar(
-              content: Text('Error al cargar estadísticas de vehículos: ${e.toString()}'),
               duration: const Duration(seconds: 3),
             ),
           );
