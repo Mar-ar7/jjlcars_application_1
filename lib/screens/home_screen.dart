@@ -661,32 +661,44 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         ? Center(child: Text('Error al cargar vehículos: $_vehiculosMarcaError'))
                         : _vehiculosPorMarca.isEmpty
                             ? Center(child: Text('No hay datos de vehículos para mostrar'))
-                            : SfCartesianChart(
-                                primaryXAxis: CategoryAxis(title: AxisTitle(text: 'Marca')),
-                                primaryYAxis: NumericAxis(title: AxisTitle(text: 'Cantidad')),
-                                series: <CartesianSeries<Map<String, dynamic>, String>>[
-                                  ColumnSeries<Map<String, dynamic>, String>(
-                                    dataSource: _vehiculosPorMarca,
-                                    xValueMapper: (data, _) => data['marca'],
-                                    yValueMapper: (data, _) => data['cantidad'],
-                                    dataLabelSettings: DataLabelSettings(isVisible: true),
-                                    pointColorMapper: (data, _) {
-                                      switch ((data['marca'] as String).toLowerCase()) {
-                                        case 'audi':
-                                          return Colors.redAccent;
-                                        case 'bmw':
-                                          return Colors.blueAccent;
-                                        case 'chevrolet':
-                                          return Colors.amber;
-                                        case 'ferrari':
-                                          return Colors.deepOrange;
-                                        default:
-                                          return Colors.grey;
-                                      }
-                                    },
-                                  ),
-                                ],
-                              ),
+                            : Builder(
+                                builder: (context) {
+                                  final vehiculosValidos = _vehiculosPorMarca.where((data) {
+                                    final marcaValida = data['marca'] != null && data['marca'].toString().isNotEmpty;
+                                    final cantidadValida = data['cantidad'] != null && (data['cantidad'] is int || int.tryParse(data['cantidad'].toString()) != null);
+                                    return marcaValida && cantidadValida;
+                                  }).toList();
+                                  if (vehiculosValidos.isEmpty) {
+                                    return Center(child: Text('No hay datos válidos para mostrar'));
+                                  }
+                                  return SfCartesianChart(
+                                    primaryXAxis: CategoryAxis(title: AxisTitle(text: 'Marca')),
+                                    primaryYAxis: NumericAxis(title: AxisTitle(text: 'Cantidad')),
+                                    series: <CartesianSeries<Map<String, dynamic>, String>>[
+                                      ColumnSeries<Map<String, dynamic>, String>(
+                                        dataSource: vehiculosValidos,
+                                        xValueMapper: (data, _) => data['marca'].toString(),
+                                        yValueMapper: (data, _) => data['cantidad'] is int ? data['cantidad'] : int.tryParse(data['cantidad'].toString()) ?? 0,
+                                        dataLabelSettings: DataLabelSettings(isVisible: true),
+                                        pointColorMapper: (data, _) {
+                                          switch ((data['marca'] as String).toLowerCase()) {
+                                            case 'audi':
+                                              return Colors.redAccent;
+                                            case 'bmw':
+                                              return Colors.blueAccent;
+                                            case 'chevrolet':
+                                              return Colors.amber;
+                                            case 'ferrari':
+                                              return Colors.deepOrange;
+                                            default:
+                                              return Colors.grey;
+                                          }
+                                        },
+                                      ),
+                                    ],
+                                  );
+                                },
+                              )
               ],
             ),
           ),

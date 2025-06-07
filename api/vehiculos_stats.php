@@ -18,9 +18,11 @@ try {
 
     $marcas = [];
     while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        $marca = isset($row['marca']) && $row['marca'] !== null ? (string)$row['marca'] : '';
+        $cantidad = isset($row['cantidad']) && is_numeric($row['cantidad']) ? (int)$row['cantidad'] : 0;
         $marcas[] = [
-            'marca' => $row['marca'],
-            'cantidad' => (int)$row['cantidad']
+            'marca' => $marca,
+            'cantidad' => $cantidad
         ];
     }
 
