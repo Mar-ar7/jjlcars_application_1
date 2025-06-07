@@ -445,19 +445,19 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Color(0xFFe3f2fd), // azul muy claro
-            Color(0xFF90caf9), // azul claro
-            Color(0xFFf5f7fa), // blanco-gris
+            Color(0xFFF5F7FA), // gris muy claro
+            Color(0xFFE8EAED), // gris claro
+            Color(0xFFDDE3EC), // gris más oscuro
           ],
         ),
       ),
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
-          title: const Text('JJL Cars', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1565C0))),
+          title: const Text('JJL Cars', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
           backgroundColor: Colors.white,
           elevation: 2,
-          iconTheme: const IconThemeData(color: Color(0xFF1565C0)),
+          iconTheme: const IconThemeData(color: Colors.black),
           actions: [
             Padding(
               padding: const EdgeInsets.only(right: 16),

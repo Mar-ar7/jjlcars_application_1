@@ -318,15 +318,22 @@ class _VehiculosScreenState extends State<VehiculosScreen> {
                                           crossAxisAlignment: CrossAxisAlignment.start,
                                           children: [
                                             Row(
-                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                              crossAxisAlignment: CrossAxisAlignment.start,
                                               children: [
-                                                Text(
-                                                  '${v.marca} ${v.modelo}',
-                                                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black),
+                                                Expanded(
+                                                  child: Text(
+                                                    '${v.marca} ${v.modelo}',
+                                                    style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black),
+                                                    maxLines: 1,
+                                                    overflow: TextOverflow.ellipsis,
+                                                  ),
                                                 ),
+                                                const SizedBox(width: 8),
                                                 Text(
-                                                  '\$24${v.precio.toStringAsFixed(2)}',
+                                                  '\$${v.precio.toStringAsFixed(2)}',
                                                   style: const TextStyle(fontSize: 20, color: Colors.black, fontWeight: FontWeight.bold),
+                                                  maxLines: 1,
+                                                  overflow: TextOverflow.ellipsis,
                                                 ),
                                               ],
                                             ),
@@ -334,6 +341,8 @@ class _VehiculosScreenState extends State<VehiculosScreen> {
                                             Text(
                                               v.descripcion,
                                               style: const TextStyle(fontSize: 15, color: Colors.black),
+                                              maxLines: 3,
+                                              overflow: TextOverflow.ellipsis,
                                             ),
                                             const SizedBox(height: 8),
                                             Row(

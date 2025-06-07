@@ -360,113 +360,154 @@ class _CitasScreenState extends State<CitasScreen> {
   @override
   Widget build(BuildContext context) {
     final citasFiltradas = _citas.where((c) => c.nombre.toLowerCase().contains(_search.toLowerCase())).toList();
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Citas'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () {
-              setState(() => _isLoading = true);
-              _cargarCitas();
-            },
-          ),
-        ],
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xFFF5F7FA), // gris muy claro
+            Color(0xFFE8EAED), // gris claro
+            Color(0xFFDDE3EC), // gris más oscuro
+          ],
+        ),
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _error != null
-              ? Center(child: Text(_error!, style: const TextStyle(color: Colors.red)))
-              : Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: TextField(
-                        controller: _searchController,
-                        decoration: InputDecoration(
-                          labelText: 'Buscar por nombre',
-                          prefixIcon: Icon(Icons.search),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          title: const Text('Citas', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
+          backgroundColor: Colors.white,
+          elevation: 2,
+          iconTheme: const IconThemeData(color: Colors.black),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.refresh),
+              onPressed: () {
+                setState(() => _isLoading = true);
+                _cargarCitas();
+              },
+            ),
+          ],
+        ),
+        body: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : _error != null
+                ? Center(child: Text(_error!, style: const TextStyle(color: Colors.red)))
+                : Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: TextField(
+                          controller: _searchController,
+                          decoration: InputDecoration(
+                            labelText: 'Buscar por nombre',
+                            prefixIcon: const Icon(Icons.search, color: Colors.black54),
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
                         ),
                       ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      child: Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text('Mostrando ${citasFiltradas.length} de ${_citas.length} registros'),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text('Mostrando ${citasFiltradas.length} de ${_citas.length} registros',
+                            style: TextStyle(color: Colors.grey[700], fontWeight: FontWeight.w500),
+                          ),
+                        ),
                       ),
-                    ),
-                    Expanded(
-                      child: citasFiltradas.isEmpty
-                          ? const Center(child: Text('No hay citas registradas'))
-                          : ListView.builder(
-                              padding: const EdgeInsets.all(16),
-                              itemCount: citasFiltradas.length,
-                              itemBuilder: (context, index) {
-                                final cita = citasFiltradas[index];
-                                return Card(
-                                  elevation: 2,
-                                  margin: const EdgeInsets.only(bottom: 16),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(16),
-                                    child: Row(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        CircleAvatar(
-                                          child: Text(
-                                            cita.nombre.isNotEmpty ? cita.nombre[0].toUpperCase() : '?',
+                      Expanded(
+                        child: citasFiltradas.isEmpty
+                            ? const Center(child: Text('No hay citas registradas'))
+                            : ListView.builder(
+                                padding: const EdgeInsets.all(16),
+                                itemCount: citasFiltradas.length,
+                                itemBuilder: (context, index) {
+                                  final cita = citasFiltradas[index];
+                                  return Card(
+                                    elevation: 4,
+                                    margin: const EdgeInsets.only(bottom: 16),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(20),
+                                      side: BorderSide(color: Colors.grey.shade200, width: 1.2),
+                                    ),
+                                    color: Colors.white,
+                                    shadowColor: Colors.grey.shade200,
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(18),
+                                      child: Row(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          CircleAvatar(
+                                            backgroundColor: Colors.grey[300],
+                                            child: Text(
+                                              cita.nombre.isNotEmpty ? cita.nombre[0].toUpperCase() : '?',
+                                              style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+                                            ),
                                           ),
-                                        ),
-                                        const SizedBox(width: 16),
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                          const SizedBox(width: 16),
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  '${cita.tipoCita} - ${cita.nombre}',
+                                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.black),
+                                                  maxLines: 1,
+                                                  overflow: TextOverflow.ellipsis,
+                                                ),
+                                                const SizedBox(height: 4),
+                                                Text('Correo: ${cita.correo}', style: const TextStyle(fontSize: 15, color: Colors.black87)),
+                                                Text('Precio: Q${cita.precio}', style: const TextStyle(fontSize: 15, color: Colors.black87)),
+                                                Text('Fecha: ${cita.fecha} ${cita.hora}', style: const TextStyle(fontSize: 15, color: Colors.black87)),
+                                                Text('Tipo de compra: ${cita.tipoCompra}', style: const TextStyle(fontSize: 15, color: Colors.black87)),
+                                                if (cita.vehiculoId != null && cita.vehiculoId != 0)
+                                                  Text('Vehículo ID: ${cita.vehiculoId}', style: const TextStyle(fontSize: 15, color: Colors.black87)),
+                                                Text('Status: ${cita.status}', style: const TextStyle(fontSize: 15, color: Colors.black87)),
+                                              ],
+                                            ),
+                                          ),
+                                          Column(
+                                            mainAxisSize: MainAxisSize.min,
                                             children: [
-                                              Text(
-                                                '${cita.tipoCita} - ${cita.nombre}',
-                                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                              ElevatedButton.icon(
+                                                icon: const Icon(Icons.edit, color: Colors.black87),
+                                                label: const Text('Editar', style: TextStyle(color: Colors.black87)),
+                                                style: ElevatedButton.styleFrom(
+                                                  backgroundColor: Colors.grey[200],
+                                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                                  elevation: 0,
+                                                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                                                ),
+                                                onPressed: () => _mostrarFormularioCita(cita: cita),
                                               ),
-                                              const SizedBox(height: 4),
-                                              Text('Correo: ${cita.correo}', style: const TextStyle(fontSize: 14)),
-                                              Text('Precio: Q${cita.precio}', style: const TextStyle(fontSize: 14)),
-                                              Text('Fecha: ${cita.fecha} ${cita.hora}', style: const TextStyle(fontSize: 14)),
-                                              Text('Tipo de compra: ${cita.tipoCompra}', style: const TextStyle(fontSize: 14)),
-                                              if (cita.vehiculoId != null && cita.vehiculoId != 0)
-                                                Text('Vehículo ID: ${cita.vehiculoId}', style: const TextStyle(fontSize: 14)),
-                                              Text('Status: ${cita.status}', style: const TextStyle(fontSize: 14)),
+                                              const SizedBox(height: 8),
+                                              ElevatedButton.icon(
+                                                icon: const Icon(Icons.delete, color: Colors.white),
+                                                label: const Text('Eliminar', style: TextStyle(color: Colors.white)),
+                                                style: ElevatedButton.styleFrom(
+                                                  backgroundColor: Colors.red.shade300,
+                                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                                  elevation: 0,
+                                                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                                                ),
+                                                onPressed: () => _confirmarEliminarCita(cita),
+                                              ),
                                             ],
                                           ),
-                                        ),
-                                        Column(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            IconButton(
-                                              icon: const Icon(Icons.edit),
-                                              onPressed: () => _mostrarFormularioCita(cita: cita),
-                                            ),
-                                            IconButton(
-                                              icon: const Icon(Icons.delete),
-                                              color: Colors.red,
-                                              onPressed: () => _confirmarEliminarCita(cita),
-                                            ),
-                                          ],
-                                        ),
-                                      ],
+                                        ],
+                                      ),
                                     ),
-                                  ),
-                                );
-                              },
-                            ),
-                    ),
-                  ],
-                ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _mostrarFormularioCita(),
-        child: const Icon(Icons.add),
+                                  );
+                                },
+                              ),
+                      ),
+                    ],
+                  ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () => _mostrarFormularioCita(),
+          backgroundColor: Colors.grey[400],
+          child: const Icon(Icons.add, color: Colors.black),
+        ),
       ),
     );
   }

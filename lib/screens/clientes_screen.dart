@@ -186,19 +186,19 @@ class _ClientesScreenState extends State<ClientesScreen> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Color(0xFFe3f2fd), // azul muy claro
-            Color(0xFF90caf9), // azul claro
-            Color(0xFFf5f7fa), // blanco-gris
+            Color(0xFFF5F7FA), // gris muy claro
+            Color(0xFFE8EAED), // gris claro
+            Color(0xFFDDE3EC), // gris más oscuro
           ],
         ),
       ),
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
-          title: const Text('Clientes', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1565C0))),
+          title: const Text('Clientes', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
           backgroundColor: Colors.white,
           elevation: 2,
-          iconTheme: const IconThemeData(color: Color(0xFF1565C0)),
+          iconTheme: const IconThemeData(color: Colors.black),
           actions: [
             IconButton(
               icon: const Icon(Icons.refresh),
@@ -230,7 +230,7 @@ class _ClientesScreenState extends State<ClientesScreen> {
                           controller: _searchController,
                           decoration: InputDecoration(
                             labelText: 'Buscar por nombre',
-                            prefixIcon: Icon(Icons.search, color: Color(0xFF1565C0)),
+                            prefixIcon: const Icon(Icons.search, color: Colors.black54),
                             border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                           ),
                         ),
@@ -240,7 +240,7 @@ class _ClientesScreenState extends State<ClientesScreen> {
                         child: Align(
                           alignment: Alignment.centerLeft,
                           child: Text('Mostrando ${clientesFiltrados.length} de ${_clientes.length} registros',
-                            style: TextStyle(color: Colors.blueGrey[700], fontWeight: FontWeight.w500),
+                            style: TextStyle(color: Colors.grey[700], fontWeight: FontWeight.w500),
                           ),
                         ),
                       ),
@@ -253,14 +253,14 @@ class _ClientesScreenState extends State<ClientesScreen> {
                                 itemBuilder: (context, index) {
                                   final c = clientesFiltrados[index];
                                   return Card(
-                                    elevation: 6,
+                                    elevation: 4,
                                     margin: const EdgeInsets.only(bottom: 16),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(20),
-                                      side: BorderSide(color: Colors.blueGrey.shade100, width: 1.5),
+                                      side: BorderSide(color: Colors.grey.shade200, width: 1.2),
                                     ),
                                     color: Colors.white,
-                                    shadowColor: Colors.blueGrey.shade100,
+                                    shadowColor: Colors.grey.shade200,
                                     child: Padding(
                                       padding: const EdgeInsets.all(18),
                                       child: Row(
@@ -268,12 +268,12 @@ class _ClientesScreenState extends State<ClientesScreen> {
                                         children: [
                                           CircleAvatar(
                                             radius: 28,
-                                            backgroundColor: const Color(0xFF1976D2),
+                                            backgroundColor: Colors.grey[300],
                                             child: Text(
                                               (c.nombre.isNotEmpty)
                                                   ? c.nombre[0].toUpperCase()
                                                   : '?',
-                                              style: const TextStyle(fontSize: 26, color: Colors.white, fontWeight: FontWeight.bold),
+                                              style: const TextStyle(fontSize: 26, color: Colors.black, fontWeight: FontWeight.bold),
                                             ),
                                           ),
                                           const SizedBox(width: 18),
@@ -283,17 +283,17 @@ class _ClientesScreenState extends State<ClientesScreen> {
                                               children: [
                                                 Row(
                                                   children: [
-                                                    Icon(Icons.person, color: Color(0xFF1565C0), size: 22),
+                                                    const Icon(Icons.person, color: Colors.black87, size: 22),
                                                     const SizedBox(width: 6),
-                                                    Text(c.nombre, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: Color(0xFF1565C0))),
+                                                    Text(c.nombre, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: Colors.black)),
                                                   ],
                                                 ),
                                                 const SizedBox(height: 6),
                                                 Row(
                                                   children: [
-                                                    Icon(Icons.email, color: Colors.blueGrey[400], size: 18),
+                                                    Icon(Icons.email, color: Colors.grey[500], size: 18),
                                                     const SizedBox(width: 4),
-                                                    Text(c.correo, style: const TextStyle(fontSize: 15, color: Colors.blueGrey)),
+                                                    Text(c.correo, style: const TextStyle(fontSize: 15, color: Colors.black87)),
                                                   ],
                                                 ),
                                                 if (c.mensaje != null && c.mensaje!.isNotEmpty)
@@ -301,14 +301,14 @@ class _ClientesScreenState extends State<ClientesScreen> {
                                                     padding: const EdgeInsets.only(top: 6),
                                                     child: Row(
                                                       children: [
-                                                        Icon(Icons.message, color: Colors.blueGrey[400], size: 18),
+                                                        Icon(Icons.message, color: Colors.grey[500], size: 18),
                                                         const SizedBox(width: 4),
                                                         Expanded(
                                                           child: Text(
                                                             c.mensaje!,
                                                             maxLines: 2,
                                                             overflow: TextOverflow.ellipsis,
-                                                            style: const TextStyle(fontSize: 15, color: Colors.blueGrey),
+                                                            style: const TextStyle(fontSize: 15, color: Colors.black87),
                                                           ),
                                                         ),
                                                       ],
@@ -318,11 +318,12 @@ class _ClientesScreenState extends State<ClientesScreen> {
                                                 Row(
                                                   children: [
                                                     ElevatedButton.icon(
-                                                      icon: const Icon(Icons.edit, color: Colors.white),
-                                                      label: const Text('Editar', style: TextStyle(color: Colors.white)),
+                                                      icon: const Icon(Icons.edit, color: Colors.black87),
+                                                      label: const Text('Editar', style: TextStyle(color: Colors.black87)),
                                                       style: ElevatedButton.styleFrom(
-                                                        backgroundColor: const Color(0xFF1976D2),
+                                                        backgroundColor: Colors.grey[200],
                                                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                                        elevation: 0,
                                                         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
                                                       ),
                                                       onPressed: () => _mostrarFormularioCliente(cliente: c),
@@ -332,8 +333,9 @@ class _ClientesScreenState extends State<ClientesScreen> {
                                                       icon: const Icon(Icons.delete, color: Colors.white),
                                                       label: const Text('Eliminar', style: TextStyle(color: Colors.white)),
                                                       style: ElevatedButton.styleFrom(
-                                                        backgroundColor: Colors.red.shade400,
+                                                        backgroundColor: Colors.red.shade300,
                                                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                                        elevation: 0,
                                                         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
                                                       ),
                                                       onPressed: () => _confirmarEliminarCliente(c),
@@ -354,8 +356,8 @@ class _ClientesScreenState extends State<ClientesScreen> {
                   ),
         floatingActionButton: FloatingActionButton(
           onPressed: () => _mostrarFormularioCliente(),
-          backgroundColor: const Color(0xFF1976D2),
-          child: const Icon(Icons.add, color: Colors.white),
+          backgroundColor: Colors.grey[400],
+          child: const Icon(Icons.add, color: Colors.black),
         ),
       ),
     );
