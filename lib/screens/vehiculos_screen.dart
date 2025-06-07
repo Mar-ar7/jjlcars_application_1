@@ -16,11 +16,24 @@ class _VehiculosScreenState extends State<VehiculosScreen> {
   List<Vehiculo> _vehiculos = [];
   bool _isLoading = true;
   String? _error;
+  TextEditingController _searchController = TextEditingController();
+  String _search = '';
 
   @override
   void initState() {
     super.initState();
     _cargarVehiculos();
+    _searchController.addListener(() {
+      setState(() {
+        _search = _searchController.text;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   Future<void> _cargarVehiculos() async {
@@ -217,6 +230,10 @@ class _VehiculosScreenState extends State<VehiculosScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final vehiculosFiltrados = _vehiculos.where((v) =>
+      v.marca.toLowerCase().contains(_search.toLowerCase()) ||
+      v.modelo.toLowerCase().contains(_search.toLowerCase())
+    ).toList();
     return Scaffold(
       appBar: AppBar(
         title: const Text('Vehículos'),
@@ -231,98 +248,122 @@ class _VehiculosScreenState extends State<VehiculosScreen> {
           ? const Center(child: CircularProgressIndicator())
           : _error != null
               ? Center(child: Text(_error!, style: const TextStyle(color: Colors.red)))
-              : _vehiculos.isEmpty
-                  ? const Center(child: Text('No hay vehículos registrados'))
-                  : ListView.builder(
-                      padding: const EdgeInsets.all(16),
-                      itemCount: _vehiculos.length,
-                      itemBuilder: (context, index) {
-                        final v = _vehiculos[index];
-                        return Card(
-                          elevation: 4,
-                          margin: const EdgeInsets.only(bottom: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              ClipRRect(
-                                borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                                child: v.imagen.isNotEmpty
-                                    ? Image.network(
-                                        v.imagen,
-                                        height: 180,
-                                        width: double.infinity,
-                                        fit: BoxFit.cover,
-                                        errorBuilder: (context, error, stackTrace) => Container(
-                                          height: 180,
-                                          color: Colors.grey[200],
-                                          child: const Icon(Icons.directions_car, size: 64, color: Colors.grey),
-                                        ),
-                                      )
-                                    : Container(
-                                        height: 180,
-                                        color: Colors.grey[200],
-                                        child: const Icon(Icons.directions_car, size: 64, color: Colors.grey),
-                                      ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.all(16),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Text(
-                                          '${v.marca} ${v.modelo}',
-                                          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                                        ),
-                                        Text(
-                                          'Q${v.precio.toStringAsFixed(2)}',
-                                          style: const TextStyle(fontSize: 18, color: Colors.green, fontWeight: FontWeight.bold),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      v.descripcion,
-                                      style: const TextStyle(fontSize: 15, color: Colors.black87),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Row(
-                                      children: [
-                                        const Icon(Icons.inventory, size: 18, color: Colors.blueGrey),
-                                        const SizedBox(width: 4),
-                                        Text('Inventario: ${v.inventario}', style: const TextStyle(fontSize: 14)),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 12),
-                                    Row(
-                                      children: [
-                                        ElevatedButton.icon(
-                                          icon: const Icon(Icons.edit),
-                                          label: const Text('Editar'),
-                                          onPressed: () => _mostrarFormularioVehiculo(vehiculo: v),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        ElevatedButton.icon(
-                                          icon: const Icon(Icons.delete),
-                                          label: const Text('Eliminar'),
-                                          style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                                          onPressed: () => _confirmarEliminarVehiculo(v),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
+              : Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: TextField(
+                        controller: _searchController,
+                        decoration: InputDecoration(
+                          labelText: 'Buscar por marca o modelo',
+                          prefixIcon: Icon(Icons.search),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                      ),
                     ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text('Mostrando ${vehiculosFiltrados.length} de ${_vehiculos.length} registros'),
+                      ),
+                    ),
+                    Expanded(
+                      child: vehiculosFiltrados.isEmpty
+                          ? const Center(child: Text('No hay vehículos registrados'))
+                          : ListView.builder(
+                              padding: const EdgeInsets.all(16),
+                              itemCount: vehiculosFiltrados.length,
+                              itemBuilder: (context, index) {
+                                final v = vehiculosFiltrados[index];
+                                return Card(
+                                  elevation: 4,
+                                  margin: const EdgeInsets.only(bottom: 16),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      ClipRRect(
+                                        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                                        child: v.imagen.isNotEmpty
+                                            ? Image.network(
+                                                v.imagen,
+                                                height: 180,
+                                                width: double.infinity,
+                                                fit: BoxFit.cover,
+                                                errorBuilder: (context, error, stackTrace) => Container(
+                                                  height: 180,
+                                                  color: Colors.grey[200],
+                                                  child: const Icon(Icons.directions_car, size: 64, color: Colors.grey),
+                                                ),
+                                              )
+                                            : Container(
+                                                height: 180,
+                                                color: Colors.grey[200],
+                                                child: const Icon(Icons.directions_car, size: 64, color: Colors.grey),
+                                              ),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.all(16),
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Row(
+                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                              children: [
+                                                Text(
+                                                  '${v.marca} ${v.modelo}',
+                                                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                                                ),
+                                                Text(
+                                                  'Q${v.precio.toStringAsFixed(2)}',
+                                                  style: const TextStyle(fontSize: 18, color: Colors.green, fontWeight: FontWeight.bold),
+                                                ),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 8),
+                                            Text(
+                                              v.descripcion,
+                                              style: const TextStyle(fontSize: 15, color: Colors.black87),
+                                            ),
+                                            const SizedBox(height: 8),
+                                            Row(
+                                              children: [
+                                                const Icon(Icons.inventory, size: 18, color: Colors.blueGrey),
+                                                const SizedBox(width: 4),
+                                                Text('Inventario: ${v.inventario}', style: const TextStyle(fontSize: 14)),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 12),
+                                            Row(
+                                              children: [
+                                                ElevatedButton.icon(
+                                                  icon: const Icon(Icons.edit),
+                                                  label: const Text('Editar'),
+                                                  onPressed: () => _mostrarFormularioVehiculo(vehiculo: v),
+                                                ),
+                                                const SizedBox(width: 8),
+                                                ElevatedButton.icon(
+                                                  icon: const Icon(Icons.delete),
+                                                  label: const Text('Eliminar'),
+                                                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                                                  onPressed: () => _confirmarEliminarVehiculo(v),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            ),
+                    ),
+                  ],
+                ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _mostrarFormularioVehiculo(),
         child: const Icon(Icons.add),

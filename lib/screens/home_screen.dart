@@ -61,6 +61,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   final ApiService _apiService = ApiService();
   late Usuario _usuario;
   final UsuarioService _usuarioService = UsuarioService();
+  late BuildContext _scaffoldContext;
 
   @override
   void initState() {
@@ -120,12 +121,14 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         _isLoadingCitaStats = false;
       });
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error al cargar estadísticas de citas: ${e.toString()}'),
-            duration: const Duration(seconds: 3),
-          ),
-        );
+        Future.delayed(Duration.zero, () {
+          ScaffoldMessenger.of(_scaffoldContext).showSnackBar(
+            SnackBar(
+              content: Text('Error al cargar estadísticas de citas: ${e.toString()}'),
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        });
       }
     }
   }
@@ -147,12 +150,14 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         _isLoadingClientStats = false;
       });
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error al cargar estadísticas de clientes: ${e.toString()}'),
-            duration: const Duration(seconds: 3),
-          ),
-        );
+        Future.delayed(Duration.zero, () {
+          ScaffoldMessenger.of(_scaffoldContext).showSnackBar(
+            SnackBar(
+              content: Text('Error al cargar estadísticas de clientes: ${e.toString()}'),
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        });
       }
     }
   }
@@ -174,12 +179,14 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         _isLoadingVehiculoStats = false;
       });
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error al cargar estadísticas de vehículos: ${e.toString()}'),
-            duration: const Duration(seconds: 3),
-          ),
-        );
+        Future.delayed(Duration.zero, () {
+          ScaffoldMessenger.of(_scaffoldContext).showSnackBar(
+            SnackBar(
+              content: Text('Error al cargar estadísticas de vehículos: ${e.toString()}'),
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        });
       }
     }
   }
@@ -274,98 +281,138 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         return Align(
           alignment: Alignment.centerRight,
           child: FractionallySizedBox(
-            widthFactor: 0.7,
+            widthFactor: 0.8,
             child: Material(
-              color: Colors.white,
-              borderRadius: const BorderRadius.horizontal(left: Radius.circular(24)),
-              child: SafeArea(
-                child: Column(
-                  mainAxisSize: MainAxisSize.max,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(24.0),
-                      child: Row(
-                        children: [
-                          CircleAvatar(
-                            radius: 28,
-                            backgroundImage: (_usuario.avatar != null && _usuario.avatar!.isNotEmpty)
-                                ? NetworkImage('http://10.0.2.2/jjlcars_application_1/${_usuario.avatar}')
-                                : null,
-                            child: (_usuario.avatar == null || _usuario.avatar!.isEmpty)
-                                ? Text(_usuario.nombre.isNotEmpty ? _usuario.nombre[0].toUpperCase() : '?', style: TextStyle(fontSize: 28))
-                                : null,
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Text(
-                              _usuario.nombre,
-                              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.close),
-                            onPressed: () => Navigator.pop(context),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const Divider(),
-                    ListTile(
-                      leading: const Icon(Icons.image),
-                      title: const Text('Cambiar imagen'),
-                      onTap: () async {
-                        Navigator.pop(context);
-                        final picker = ImagePicker();
-                        final picked = await picker.pickImage(source: ImageSource.gallery);
-                        if (picked != null) {
-                          try {
-                            await _usuarioService.actualizarPerfil(id: _usuario.id, avatar: File(picked.path));
-                            await _refrescarUsuario();
-                          } catch (e) {
-                            if (mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
-                            }
-                          }
-                        }
-                      },
-                    ),
-                    ListTile(
-                      leading: const Icon(Icons.edit),
-                      title: const Text('Cambiar nombre'),
-                      onTap: () async {
-                        Navigator.pop(context);
-                        final controller = TextEditingController(text: _usuario.nombre);
-                        final ok = await showDialog<bool>(
-                          context: context,
-                          builder: (context) => AlertDialog(
-                            title: const Text('Editar nombre'),
-                            content: TextField(controller: controller),
-                            actions: [
-                              TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancelar')),
-                              ElevatedButton(onPressed: () => Navigator.pop(context, true), child: const Text('Guardar')),
-                            ],
-                          ),
-                        );
-                        if (ok == true && controller.text.isNotEmpty) {
-                          try {
-                            await _usuarioService.actualizarPerfil(id: _usuario.id, nombre: controller.text);
-                            await _refrescarUsuario();
-                          } catch (e) {
-                            if (mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
-                            }
-                          }
-                        }
-                      },
-                    ),
-                    const Spacer(),
-                    Padding(
-                      padding: const EdgeInsets.all(24.0),
-                      child: Text('© 2024 JJL Cars', style: TextStyle(color: Colors.grey[400])),
+              color: Colors.transparent,
+              child: Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Color(0xFF1E88E5), Color(0xFF1565C0)],
+                  ),
+                  borderRadius: BorderRadius.horizontal(left: Radius.circular(32)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black26,
+                      blurRadius: 16,
+                      offset: Offset(-4, 0),
                     ),
                   ],
+                ),
+                child: SafeArea(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.max,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(top: 32, right: 16, left: 16, bottom: 8),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.close, color: Colors.white, size: 32),
+                              onPressed: () => Navigator.pop(context),
+                            ),
+                          ],
+                        ),
+                      ),
+                      CircleAvatar(
+                        radius: 48,
+                        backgroundColor: Colors.white,
+                        backgroundImage: (_usuario.avatar != null && _usuario.avatar!.isNotEmpty)
+                            ? NetworkImage('http://10.0.2.2/jjlcars_application_1/${_usuario.avatar}')
+                            : null,
+                        child: (_usuario.avatar == null || _usuario.avatar!.isEmpty)
+                            ? Text(_usuario.nombre.isNotEmpty ? _usuario.nombre[0].toUpperCase() : '?', style: const TextStyle(fontSize: 40, color: Color(0xFF1565C0)))
+                            : null,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        _usuario.nombre,
+                        style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+                        textAlign: TextAlign.center,
+                      ),
+                      if (_usuario.usuario.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          _usuario.usuario,
+                          style: const TextStyle(fontSize: 16, color: Colors.white70),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                      const SizedBox(height: 32),
+                      Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 24),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Column(
+                          children: [
+                            ListTile(
+                              leading: const Icon(Icons.image, color: Colors.white, size: 32),
+                              title: const Text('Cambiar imagen', style: TextStyle(color: Colors.white, fontSize: 18)),
+                              onTap: () async {
+                                Navigator.pop(context);
+                                final picker = ImagePicker();
+                                final picked = await picker.pickImage(source: ImageSource.gallery);
+                                if (picked != null) {
+                                  try {
+                                    await _usuarioService.actualizarPerfil(id: _usuario.id, avatar: File(picked.path));
+                                    await _refrescarUsuario();
+                                  } catch (e) {
+                                    if (mounted) {
+                                      Future.delayed(Duration.zero, () {
+                                        ScaffoldMessenger.of(_scaffoldContext).showSnackBar(SnackBar(content: Text('Error: $e')));
+                                      });
+                                    }
+                                  }
+                                }
+                              },
+                            ),
+                            const Divider(color: Colors.white24, height: 1),
+                            ListTile(
+                              leading: const Icon(Icons.edit, color: Colors.white, size: 32),
+                              title: const Text('Cambiar nombre', style: TextStyle(color: Colors.white, fontSize: 18)),
+                              onTap: () async {
+                                Navigator.pop(context);
+                                final controller = TextEditingController(text: _usuario.nombre);
+                                final ok = await showDialog<bool>(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                    title: const Text('Editar nombre'),
+                                    content: TextField(controller: controller),
+                                    actions: [
+                                      TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancelar')),
+                                      ElevatedButton(onPressed: () => Navigator.pop(context, true), child: const Text('Guardar')),
+                                    ],
+                                  ),
+                                );
+                                if (ok == true && controller.text.isNotEmpty) {
+                                  try {
+                                    await _usuarioService.actualizarPerfil(id: _usuario.id, nombre: controller.text);
+                                    await _refrescarUsuario();
+                                  } catch (e) {
+                                    if (mounted) {
+                                      Future.delayed(Duration.zero, () {
+                                        ScaffoldMessenger.of(_scaffoldContext).showSnackBar(SnackBar(content: Text('Error: $e')));
+                                      });
+                                    }
+                                  }
+                                }
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Spacer(),
+                      Padding(
+                        padding: const EdgeInsets.all(24.0),
+                        child: Text('© 2024 JJL Cars', style: TextStyle(color: Colors.white54)),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -394,19 +441,24 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         ],
       ),
       drawer: const CustomDrawer(),
-      body: RefreshIndicator(
-        onRefresh: _loadAllStats, // Refresh all stats on pull down
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildWelcomeCard(),
-              const SizedBox(height: 24),
-              _buildStatistics(),
-            ],
-          ),
-        ),
+      body: Builder(
+        builder: (scaffoldContext) {
+          _scaffoldContext = scaffoldContext;
+          return RefreshIndicator(
+            onRefresh: _loadAllStats, // Refresh all stats on pull down
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildWelcomeCard(),
+                  const SizedBox(height: 24),
+                  _buildStatistics(),
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
   }

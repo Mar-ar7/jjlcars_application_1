@@ -15,11 +15,24 @@ class _CitasScreenState extends State<CitasScreen> {
   List<Cita> _citas = [];
   bool _isLoading = true;
   String? _error;
+  TextEditingController _searchController = TextEditingController();
+  String _search = '';
 
   @override
   void initState() {
     super.initState();
     _cargarCitas();
+    _searchController.addListener(() {
+      setState(() {
+        _search = _searchController.text;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   Future<void> _cargarCitas() async {
@@ -335,6 +348,7 @@ class _CitasScreenState extends State<CitasScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final citasFiltradas = _citas.where((c) => c.nombre.toLowerCase().contains(_search.toLowerCase())).toList();
     return Scaffold(
       appBar: AppBar(
         title: const Text('Citas'),
@@ -352,69 +366,93 @@ class _CitasScreenState extends State<CitasScreen> {
           ? const Center(child: CircularProgressIndicator())
           : _error != null
               ? Center(child: Text(_error!, style: const TextStyle(color: Colors.red)))
-              : _citas.isEmpty
-                  ? const Center(child: Text('No hay citas registradas'))
-                  : ListView.builder(
-                      padding: const EdgeInsets.all(16),
-                      itemCount: _citas.length,
-                      itemBuilder: (context, index) {
-                        final cita = _citas[index];
-                        return Card(
-                          elevation: 2,
-                          margin: const EdgeInsets.only(bottom: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                CircleAvatar(
-                                  child: Text(
-                                    cita.nombre.isNotEmpty ? cita.nombre[0].toUpperCase() : '?',
-                                  ),
-                                ),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        '${cita.tipoCita} - ${cita.nombre}',
-                                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text('Correo: ${cita.correo}', style: const TextStyle(fontSize: 14)),
-                                      Text('Precio: Q${cita.precio}', style: const TextStyle(fontSize: 14)),
-                                      Text('Fecha: ${cita.fecha} ${cita.hora}', style: const TextStyle(fontSize: 14)),
-                                      Text('Tipo de compra: ${cita.tipoCompra}', style: const TextStyle(fontSize: 14)),
-                                      if (cita.vehiculoId != null && cita.vehiculoId != 0)
-                                        Text('Vehículo ID: ${cita.vehiculoId}', style: const TextStyle(fontSize: 14)),
-                                      Text('Status: ${cita.status}', style: const TextStyle(fontSize: 14)),
-                                    ],
-                                  ),
-                                ),
-                                Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    IconButton(
-                                      icon: const Icon(Icons.edit),
-                                      onPressed: () => _mostrarFormularioCita(cita: cita),
-                                    ),
-                                    IconButton(
-                                      icon: const Icon(Icons.delete),
-                                      color: Colors.red,
-                                      onPressed: () => _confirmarEliminarCita(cita),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
+              : Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: TextField(
+                        controller: _searchController,
+                        decoration: InputDecoration(
+                          labelText: 'Buscar por nombre',
+                          prefixIcon: Icon(Icons.search),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                      ),
                     ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text('Mostrando ${citasFiltradas.length} de ${_citas.length} registros'),
+                      ),
+                    ),
+                    Expanded(
+                      child: citasFiltradas.isEmpty
+                          ? const Center(child: Text('No hay citas registradas'))
+                          : ListView.builder(
+                              padding: const EdgeInsets.all(16),
+                              itemCount: citasFiltradas.length,
+                              itemBuilder: (context, index) {
+                                final cita = citasFiltradas[index];
+                                return Card(
+                                  elevation: 2,
+                                  margin: const EdgeInsets.only(bottom: 16),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(16),
+                                    child: Row(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        CircleAvatar(
+                                          child: Text(
+                                            cita.nombre.isNotEmpty ? cita.nombre[0].toUpperCase() : '?',
+                                          ),
+                                        ),
+                                        const SizedBox(width: 16),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                '${cita.tipoCita} - ${cita.nombre}',
+                                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Text('Correo: ${cita.correo}', style: const TextStyle(fontSize: 14)),
+                                              Text('Precio: Q${cita.precio}', style: const TextStyle(fontSize: 14)),
+                                              Text('Fecha: ${cita.fecha} ${cita.hora}', style: const TextStyle(fontSize: 14)),
+                                              Text('Tipo de compra: ${cita.tipoCompra}', style: const TextStyle(fontSize: 14)),
+                                              if (cita.vehiculoId != null && cita.vehiculoId != 0)
+                                                Text('Vehículo ID: ${cita.vehiculoId}', style: const TextStyle(fontSize: 14)),
+                                              Text('Status: ${cita.status}', style: const TextStyle(fontSize: 14)),
+                                            ],
+                                          ),
+                                        ),
+                                        Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            IconButton(
+                                              icon: const Icon(Icons.edit),
+                                              onPressed: () => _mostrarFormularioCita(cita: cita),
+                                            ),
+                                            IconButton(
+                                              icon: const Icon(Icons.delete),
+                                              color: Colors.red,
+                                              onPressed: () => _confirmarEliminarCita(cita),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                    ),
+                  ],
+                ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _mostrarFormularioCita(),
         child: const Icon(Icons.add),

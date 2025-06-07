@@ -14,11 +14,24 @@ class _EmpleadosScreenState extends State<EmpleadosScreen> {
   List<Usuario> _usuarios = [];
   bool _isLoading = true;
   String? _error;
+  TextEditingController _searchController = TextEditingController();
+  String _search = '';
 
   @override
   void initState() {
     super.initState();
     _cargarUsuarios();
+    _searchController.addListener(() {
+      setState(() {
+        _search = _searchController.text;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   Future<void> _cargarUsuarios() async {
@@ -199,6 +212,10 @@ class _EmpleadosScreenState extends State<EmpleadosScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final usuariosFiltrados = _usuarios.where((u) =>
+      u.nombre.toLowerCase().contains(_search.toLowerCase()) ||
+      u.usuario.toLowerCase().contains(_search.toLowerCase())
+    ).toList();
     return Scaffold(
       appBar: AppBar(
         title: const Text('Empleados'),
@@ -218,38 +235,61 @@ class _EmpleadosScreenState extends State<EmpleadosScreen> {
                     ],
                   ),
                 )
-              : RefreshIndicator(
-                  onRefresh: _cargarUsuarios,
-                  child: ListView.builder(
-                    itemCount: _usuarios.length,
-                    itemBuilder: (context, index) {
-                      final usuario = _usuarios[index];
-                      return Card(
-                        margin: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
+              : Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: TextField(
+                        controller: _searchController,
+                        decoration: InputDecoration(
+                          labelText: 'Buscar por nombre',
+                          prefixIcon: Icon(Icons.search),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                         ),
-                        child: ListTile(
-                          title: Text(usuario.nombre),
-                          subtitle: Text('${usuario.usuario} - ${usuario.tipoUsuario}'),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.edit),
-                                onPressed: () => _mostrarFormularioUsuario(usuario),
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.delete),
-                                color: Colors.red,
-                                onPressed: () => _confirmarEliminar(usuario),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
-                  ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text('Mostrando ${usuariosFiltrados.length} de ${_usuarios.length} registros'),
+                      ),
+                    ),
+                    Expanded(
+                      child: usuariosFiltrados.isEmpty
+                          ? const Center(child: Text('No hay empleados registrados'))
+                          : ListView.builder(
+                              itemCount: usuariosFiltrados.length,
+                              itemBuilder: (context, index) {
+                                final usuario = usuariosFiltrados[index];
+                                return Card(
+                                  margin: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 8,
+                                  ),
+                                  child: ListTile(
+                                    title: Text(usuario.nombre),
+                                    subtitle: Text('${usuario.usuario} - ${usuario.tipoUsuario}'),
+                                    trailing: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        IconButton(
+                                          icon: const Icon(Icons.edit),
+                                          onPressed: () => _mostrarFormularioUsuario(usuario),
+                                        ),
+                                        IconButton(
+                                          icon: const Icon(Icons.delete),
+                                          color: Colors.red,
+                                          onPressed: () => _confirmarEliminar(usuario),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                    ),
+                  ],
                 ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _mostrarFormularioUsuario(),

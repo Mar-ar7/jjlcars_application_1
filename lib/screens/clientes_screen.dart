@@ -14,11 +14,24 @@ class _ClientesScreenState extends State<ClientesScreen> {
   List<Cliente> _clientes = [];
   bool _isLoading = true;
   String? _error;
+  TextEditingController _searchController = TextEditingController();
+  String _search = '';
 
   @override
   void initState() {
     super.initState();
     _cargarClientes();
+    _searchController.addListener(() {
+      setState(() {
+        _search = _searchController.text;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   Future<void> _cargarClientes() async {
@@ -166,6 +179,7 @@ class _ClientesScreenState extends State<ClientesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final clientesFiltrados = _clientes.where((c) => c.nombre.toLowerCase().contains(_search.toLowerCase())).toList();
     return Scaffold(
       appBar: AppBar(
         title: const Text('Clientes'),
@@ -192,60 +206,84 @@ class _ClientesScreenState extends State<ClientesScreen> {
                     ],
                   ),
                 )
-              : _clientes.isEmpty
-                  ? const Center(child: Text('No hay clientes registrados'))
-                  : ListView.builder(
-                      padding: const EdgeInsets.all(16),
-                      itemCount: _clientes.length,
-                      itemBuilder: (context, index) {
-                        final c = _clientes[index];
-                        return Card(
-                          elevation: 4,
-                          margin: const EdgeInsets.only(bottom: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: ListTile(
-                            contentPadding: const EdgeInsets.all(16),
-                            leading: CircleAvatar(
-                              child: Text(
-                                (c.nombre.isNotEmpty)
-                                  ? c.nombre[0].toUpperCase()
-                                  : '?',
-                              ),
-                            ),
-                            title: Text(c.nombre),
-                            subtitle: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const SizedBox(height: 8),
-                                Text('Correo: ${c.correo}'),
-                                if (c.mensaje != null && c.mensaje!.isNotEmpty)
-                                  Text(
-                                    'Mensaje: ${c.mensaje}',
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                              ],
-                            ),
-                            trailing: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                IconButton(
-                                  icon: const Icon(Icons.edit),
-                                  onPressed: () => _mostrarFormularioCliente(cliente: c),
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons.delete),
-                                  color: Colors.red,
-                                  onPressed: () => _confirmarEliminarCliente(c),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
+              : Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: TextField(
+                        controller: _searchController,
+                        decoration: InputDecoration(
+                          labelText: 'Buscar por nombre',
+                          prefixIcon: Icon(Icons.search),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                      ),
                     ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text('Mostrando ${clientesFiltrados.length} de ${_clientes.length} registros'),
+                      ),
+                    ),
+                    Expanded(
+                      child: clientesFiltrados.isEmpty
+                          ? const Center(child: Text('No hay clientes registrados'))
+                          : ListView.builder(
+                              padding: const EdgeInsets.all(16),
+                              itemCount: clientesFiltrados.length,
+                              itemBuilder: (context, index) {
+                                final c = clientesFiltrados[index];
+                                return Card(
+                                  elevation: 4,
+                                  margin: const EdgeInsets.only(bottom: 16),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  child: ListTile(
+                                    contentPadding: const EdgeInsets.all(16),
+                                    leading: CircleAvatar(
+                                      child: Text(
+                                        (c.nombre.isNotEmpty)
+                                          ? c.nombre[0].toUpperCase()
+                                          : '?',
+                                      ),
+                                    ),
+                                    title: Text(c.nombre),
+                                    subtitle: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        const SizedBox(height: 8),
+                                        Text('Correo: ${c.correo}'),
+                                        if (c.mensaje != null && c.mensaje!.isNotEmpty)
+                                          Text(
+                                            'Mensaje: ${c.mensaje}',
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                      ],
+                                    ),
+                                    trailing: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        IconButton(
+                                          icon: const Icon(Icons.edit),
+                                          onPressed: () => _mostrarFormularioCliente(cliente: c),
+                                        ),
+                                        IconButton(
+                                          icon: const Icon(Icons.delete),
+                                          color: Colors.red,
+                                          onPressed: () => _confirmarEliminarCliente(c),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                    ),
+                  ],
+                ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _mostrarFormularioCliente(),
         child: const Icon(Icons.add),
