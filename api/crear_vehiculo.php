@@ -16,8 +16,8 @@ require_once 'conexion.php';
 
 try {
     // Verificar si se recibió un archivo
-    if (!isset($_FILES['imagen'])) {
-        throw new Exception('No se recibió ninguna imagen');
+    if (!isset($_FILES['imagen']) || $_FILES['imagen']['error'] !== UPLOAD_ERR_OK) {
+        throw new Exception('No se recibió ninguna imagen válida');
     }
 
     // Verificar y procesar los datos del formulario
@@ -25,38 +25,33 @@ try {
         throw new Exception('Faltan datos requeridos');
     }
 
-    // Procesar la imagen
-    $imagen = $_FILES['imagen'];
-    $nombreImagen = $imagen['name'];
-    $tipoImagen = $imagen['type'];
-    $rutaTemporal = $imagen['tmp_name'];
-    $error = $imagen['error'];
+    // Procesar la imagen solo si se recibe
+    $nombreImagen = 'default.png';
+    if (isset($_FILES['imagen']) && $_FILES['imagen']['error'] === UPLOAD_ERR_OK) {
+        $imagen = $_FILES['imagen'];
+        $nombreImagen = $imagen['name'];
+        $tipoImagen = $imagen['type'];
+        $rutaTemporal = $imagen['tmp_name'];
+        $error = $imagen['error'];
 
-    // Verificar errores en la subida
-    if ($error !== UPLOAD_ERR_OK) {
-        throw new Exception('Error al subir la imagen');
-    }
+        // Verificar tipo de archivo
+        $tiposPermitidos = ['image/jpeg', 'image/png', 'image/jpg'];
+        if (!in_array($tipoImagen, $tiposPermitidos)) {
+            throw new Exception('Tipo de archivo no permitido. Solo se permiten JPG y PNG');
+        }
 
-    // Verificar tipo de archivo
-    $tiposPermitidos = ['image/jpeg', 'image/png', 'image/jpg'];
-    if (!in_array($tipoImagen, $tiposPermitidos)) {
-        throw new Exception('Tipo de archivo no permitido. Solo se permiten JPG y PNG');
-    }
-
-    // Generar nombre único para la imagen
-    $extension = pathinfo($nombreImagen, PATHINFO_EXTENSION);
-    $nombreUnico = uniqid() . '_' . $nombreImagen;
-    
-    // Crear directorio si no existe
-    $directorioDestino = '../Imagen/';
-    if (!file_exists($directorioDestino)) {
-        mkdir($directorioDestino, 0777, true);
-    }
-
-    // Mover el archivo
-    $rutaDestino = $directorioDestino . $nombreUnico;
-    if (!move_uploaded_file($rutaTemporal, $rutaDestino)) {
-        throw new Exception('Error al guardar la imagen');
+        // Generar nombre único para la imagen
+        $extension = pathinfo($nombreImagen, PATHINFO_EXTENSION);
+        $nombreUnico = uniqid() . '_' . $nombreImagen;
+        $directorioDestino = '../Imagen/';
+        if (!file_exists($directorioDestino)) {
+            mkdir($directorioDestino, 0777, true);
+        }
+        $rutaDestino = $directorioDestino . $nombreUnico;
+        if (!move_uploaded_file($rutaTemporal, $rutaDestino)) {
+            throw new Exception('Error al guardar la imagen');
+        }
+        $nombreImagen = $nombreUnico;
     }
 
     $conexion = Conexion::conectar();
@@ -69,7 +64,7 @@ try {
         $_POST['modelo'],
         $_POST['descripcion'] ?? '',
         $_POST['precio'],
-        $nombreUnico,
+        $nombreImagen,
         $_POST['inventario']
     ]);
     

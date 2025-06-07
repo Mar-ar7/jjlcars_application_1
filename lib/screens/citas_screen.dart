@@ -147,7 +147,7 @@ class _CitasScreenState extends State<CitasScreen> {
                         decoration: const InputDecoration(labelText: 'Correo'),
                         validator: (v) {
                           if (v == null || v.isEmpty) return 'Campo obligatorio';
-                          if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(v)) return 'Correo inválido';
+                          if (!RegExp(r'^([a-zA-Z0-9_\-.+]+)@([a-zA-Z0-9\-.]+)\.([a-zA-Z]{2,})$').hasMatch(v)) return 'Correo inválido';
                           return null;
                         },
                         keyboardType: TextInputType.emailAddress,

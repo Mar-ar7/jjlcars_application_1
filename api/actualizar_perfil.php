@@ -29,7 +29,8 @@ if ($nombre) $campos[] = "Nombre = '" . $conn->real_escape_string($nombre) . "'"
 if ($avatar) $campos[] = "avatar = '" . $conn->real_escape_string($avatar) . "'";
 
 if (empty($campos)) {
-    echo json_encode(['success' => false, 'error' => 'Nada que actualizar']);
+    // No hay nada que actualizar, pero responde con éxito y los datos actuales
+    echo json_encode(['success' => true, 'avatar' => $avatar, 'nombre' => $nombre]);
     exit;
 }
 
