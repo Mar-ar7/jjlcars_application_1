@@ -216,84 +216,173 @@ class _EmpleadosScreenState extends State<EmpleadosScreen> {
       u.nombre.toLowerCase().contains(_search.toLowerCase()) ||
       u.usuario.toLowerCase().contains(_search.toLowerCase())
     ).toList();
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Empleados'),
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xFFe3f2fd), // azul muy claro
+            Color(0xFF90caf9), // azul claro
+            Color(0xFFf5f7fa), // blanco-gris
+          ],
+        ),
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _error != null
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          title: const Text('Empleados', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1565C0))),
+          backgroundColor: Colors.white,
+          elevation: 2,
+          iconTheme: const IconThemeData(color: Color(0xFF1565C0)),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.refresh),
+              onPressed: _cargarUsuarios,
+            ),
+          ],
+        ),
+        body: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : _error != null
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text('Error: $_error', style: const TextStyle(color: Colors.red)),
+                        const SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: _cargarUsuarios,
+                          child: const Text('Reintentar'),
+                        ),
+                      ],
+                    ),
+                  )
+                : Column(
                     children: [
-                      Text('Error: $_error'),
-                      ElevatedButton(
-                        onPressed: _cargarUsuarios,
-                        child: const Text('Reintentar'),
+                      Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: TextField(
+                          controller: _searchController,
+                          decoration: InputDecoration(
+                            labelText: 'Buscar por nombre',
+                            prefixIcon: const Icon(Icons.search, color: Color(0xFF1565C0)),
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text('Mostrando ${usuariosFiltrados.length} de ${_usuarios.length} registros',
+                            style: TextStyle(color: Colors.blueGrey[700], fontWeight: FontWeight.w500),
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: usuariosFiltrados.isEmpty
+                            ? const Center(child: Text('No hay empleados registrados'))
+                            : ListView.builder(
+                                padding: const EdgeInsets.all(16),
+                                itemCount: usuariosFiltrados.length,
+                                itemBuilder: (context, index) {
+                                  final usuario = usuariosFiltrados[index];
+                                  return Card(
+                                    elevation: 6,
+                                    margin: const EdgeInsets.only(bottom: 16),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(20),
+                                      side: BorderSide(color: Colors.blueGrey.shade100, width: 1.5),
+                                    ),
+                                    color: Colors.white,
+                                    shadowColor: Colors.blueGrey.shade100,
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(18),
+                                      child: Row(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          CircleAvatar(
+                                            radius: 28,
+                                            backgroundColor: const Color(0xFF1976D2),
+                                            child: Text(
+                                              (usuario.nombre.isNotEmpty)
+                                                  ? usuario.nombre[0].toUpperCase()
+                                                  : '?',
+                                              style: const TextStyle(fontSize: 26, color: Colors.white, fontWeight: FontWeight.bold),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 18),
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Row(
+                                                  children: [
+                                                    const Icon(Icons.person, color: Color(0xFF1565C0), size: 22),
+                                                    const SizedBox(width: 6),
+                                                    Text(usuario.nombre, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: Color(0xFF1565C0))),
+                                                  ],
+                                                ),
+                                                const SizedBox(height: 6),
+                                                Row(
+                                                  children: [
+                                                    Icon(Icons.account_circle, color: Colors.blueGrey[400], size: 18),
+                                                    const SizedBox(width: 4),
+                                                    Text(usuario.usuario, style: const TextStyle(fontSize: 15, color: Colors.blueGrey)),
+                                                  ],
+                                                ),
+                                                const SizedBox(height: 6),
+                                                Row(
+                                                  children: [
+                                                    Icon(Icons.badge, color: Colors.blueGrey[400], size: 18),
+                                                    const SizedBox(width: 4),
+                                                    Text(usuario.tipoUsuario, style: const TextStyle(fontSize: 15, color: Colors.blueGrey)),
+                                                  ],
+                                                ),
+                                                const SizedBox(height: 10),
+                                                Row(
+                                                  children: [
+                                                    ElevatedButton.icon(
+                                                      icon: const Icon(Icons.edit, color: Colors.white),
+                                                      label: const Text('Editar', style: TextStyle(color: Colors.white)),
+                                                      style: ElevatedButton.styleFrom(
+                                                        backgroundColor: const Color(0xFF1976D2),
+                                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                                        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                                                      ),
+                                                      onPressed: () => _mostrarFormularioUsuario(usuario),
+                                                    ),
+                                                    const SizedBox(width: 8),
+                                                    ElevatedButton.icon(
+                                                      icon: const Icon(Icons.delete, color: Colors.white),
+                                                      label: const Text('Eliminar', style: TextStyle(color: Colors.white)),
+                                                      style: ElevatedButton.styleFrom(
+                                                        backgroundColor: Colors.red.shade400,
+                                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                                        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                                                      ),
+                                                      onPressed: () => _confirmarEliminar(usuario),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
                       ),
                     ],
                   ),
-                )
-              : Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: TextField(
-                        controller: _searchController,
-                        decoration: InputDecoration(
-                          labelText: 'Buscar por nombre',
-                          prefixIcon: Icon(Icons.search),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                        ),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      child: Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text('Mostrando ${usuariosFiltrados.length} de ${_usuarios.length} registros'),
-                      ),
-                    ),
-                    Expanded(
-                      child: usuariosFiltrados.isEmpty
-                          ? const Center(child: Text('No hay empleados registrados'))
-                          : ListView.builder(
-                              itemCount: usuariosFiltrados.length,
-                              itemBuilder: (context, index) {
-                                final usuario = usuariosFiltrados[index];
-                                return Card(
-                                  margin: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 8,
-                                  ),
-                                  child: ListTile(
-                                    title: Text(usuario.nombre),
-                                    subtitle: Text('${usuario.usuario} - ${usuario.tipoUsuario}'),
-                                    trailing: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        IconButton(
-                                          icon: const Icon(Icons.edit),
-                                          onPressed: () => _mostrarFormularioUsuario(usuario),
-                                        ),
-                                        IconButton(
-                                          icon: const Icon(Icons.delete),
-                                          color: Colors.red,
-                                          onPressed: () => _confirmarEliminar(usuario),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                    ),
-                  ],
-                ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _mostrarFormularioUsuario(),
-        child: const Icon(Icons.add),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () => _mostrarFormularioUsuario(),
+          backgroundColor: const Color(0xFF1976D2),
+          child: const Icon(Icons.add, color: Colors.white),
+        ),
       ),
     );
   }

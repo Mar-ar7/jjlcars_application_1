@@ -439,35 +439,52 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('JJL Cars'),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: _buildAvatar(),
-          ),
-        ],
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xFFe3f2fd), // azul muy claro
+            Color(0xFF90caf9), // azul claro
+            Color(0xFFf5f7fa), // blanco-gris
+          ],
+        ),
       ),
-      drawer: const CustomDrawer(),
-      body: Builder(
-        builder: (scaffoldContext) {
-          _scaffoldContext = scaffoldContext;
-          return RefreshIndicator(
-            onRefresh: _loadAllStats, // Refresh all stats on pull down
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildWelcomeCard(),
-                  const SizedBox(height: 24),
-                  _buildStatistics(),
-                ],
-              ),
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          title: const Text('JJL Cars', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1565C0))),
+          backgroundColor: Colors.white,
+          elevation: 2,
+          iconTheme: const IconThemeData(color: Color(0xFF1565C0)),
+          actions: [
+            Padding(
+              padding: const EdgeInsets.only(right: 16),
+              child: _buildAvatar(),
             ),
-          );
-        },
+          ],
+        ),
+        drawer: const CustomDrawer(),
+        body: Builder(
+          builder: (scaffoldContext) {
+            _scaffoldContext = scaffoldContext;
+            return RefreshIndicator(
+              onRefresh: _loadAllStats, // Refresh all stats on pull down
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildWelcomeCard(),
+                    const SizedBox(height: 24),
+                    _buildStatistics(),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
       ),
     );
   }
@@ -490,26 +507,31 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   Widget _buildWelcomeCard() {
     return Card(
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15),
+        borderRadius: BorderRadius.circular(20),
       ),
+      elevation: 6,
+      color: Colors.white,
+      shadowColor: Colors.blueGrey.shade100,
       child: Padding(
-        padding: const EdgeInsets.all(20.0),
+        padding: const EdgeInsets.all(28.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               '¡Bienvenido, ${widget.userData['Nombre']}!',
               style: const TextStyle(
-                fontSize: 24,
+                fontSize: 28,
                 fontWeight: FontWeight.bold,
+                color: Color(0xFF1565C0),
               ),
             ),
             const SizedBox(height: 8),
             Text(
               'Tipo de usuario: ${widget.userData['TipoUsuario']}',
               style: TextStyle(
-                fontSize: 16,
-                color: AppColors.textSecondary,
+                fontSize: 18,
+                color: Colors.blueGrey[700],
+                fontWeight: FontWeight.w500,
               ),
             ),
           ],
@@ -525,8 +547,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         Text(
           'Estadísticas Generales',
           style: TextStyle(
-            fontSize: 20,
+            fontSize: 22,
             fontWeight: FontWeight.bold,
+            color: Colors.blueGrey[900],
           ),
         ),
         const SizedBox(height: 16),

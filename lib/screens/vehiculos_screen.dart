@@ -277,16 +277,19 @@ class _VehiculosScreenState extends State<VehiculosScreen> {
                               itemBuilder: (context, index) {
                                 final v = vehiculosFiltrados[index];
                                 return Card(
-                                  elevation: 4,
+                                  elevation: 6,
                                   margin: const EdgeInsets.only(bottom: 16),
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(16),
+                                    borderRadius: BorderRadius.circular(20),
+                                    side: BorderSide(color: Colors.blueGrey.shade100, width: 1.5),
                                   ),
+                                  color: Colors.white,
+                                  shadowColor: Colors.blueGrey.shade100,
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       ClipRRect(
-                                        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                                        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
                                         child: v.imagen.isNotEmpty
                                             ? Image.network(
                                                 v.imagen,
@@ -295,18 +298,22 @@ class _VehiculosScreenState extends State<VehiculosScreen> {
                                                 fit: BoxFit.cover,
                                                 errorBuilder: (context, error, stackTrace) => Container(
                                                   height: 180,
-                                                  color: Colors.grey[200],
-                                                  child: const Icon(Icons.directions_car, size: 64, color: Colors.grey),
+                                                  color: Colors.blueGrey[50],
+                                                  child: const Icon(Icons.directions_car, size: 64, color: Colors.blueGrey),
                                                 ),
                                               )
                                             : Container(
                                                 height: 180,
-                                                color: Colors.grey[200],
-                                                child: const Icon(Icons.directions_car, size: 64, color: Colors.grey),
+                                                color: Colors.blueGrey[50],
+                                                child: const Icon(Icons.directions_car, size: 64, color: Colors.blueGrey),
                                               ),
                                       ),
-                                      Padding(
-                                        padding: const EdgeInsets.all(16),
+                                      Container(
+                                        padding: const EdgeInsets.all(18),
+                                        decoration: BoxDecoration(
+                                          color: Colors.blueGrey[50],
+                                          borderRadius: const BorderRadius.vertical(bottom: Radius.circular(20)),
+                                        ),
                                         child: Column(
                                           crossAxisAlignment: CrossAxisAlignment.start,
                                           children: [
@@ -315,40 +322,49 @@ class _VehiculosScreenState extends State<VehiculosScreen> {
                                               children: [
                                                 Text(
                                                   '${v.marca} ${v.modelo}',
-                                                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                                                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF1565C0)),
                                                 ),
                                                 Text(
-                                                  'Q${v.precio.toStringAsFixed(2)}',
-                                                  style: const TextStyle(fontSize: 18, color: Colors.green, fontWeight: FontWeight.bold),
+                                                  '\$24${v.precio.toStringAsFixed(2)}',
+                                                  style: const TextStyle(fontSize: 20, color: Color(0xFF1565C0), fontWeight: FontWeight.bold),
                                                 ),
                                               ],
                                             ),
                                             const SizedBox(height: 8),
                                             Text(
                                               v.descripcion,
-                                              style: const TextStyle(fontSize: 15, color: Colors.black87),
+                                              style: const TextStyle(fontSize: 15, color: Colors.blueGrey),
                                             ),
                                             const SizedBox(height: 8),
                                             Row(
                                               children: [
-                                                const Icon(Icons.inventory, size: 18, color: Colors.blueGrey),
+                                                const Icon(Icons.inventory, size: 18, color: Color(0xFF1565C0)),
                                                 const SizedBox(width: 4),
-                                                Text('Inventario: ${v.inventario}', style: const TextStyle(fontSize: 14)),
+                                                Text('Inventario: ${v.inventario}', style: const TextStyle(fontSize: 14, color: Color(0xFF1565C0))),
                                               ],
                                             ),
                                             const SizedBox(height: 12),
                                             Row(
                                               children: [
                                                 ElevatedButton.icon(
-                                                  icon: const Icon(Icons.edit),
-                                                  label: const Text('Editar'),
+                                                  icon: const Icon(Icons.edit, color: Colors.white),
+                                                  label: const Text('Editar', style: TextStyle(color: Colors.white)),
+                                                  style: ElevatedButton.styleFrom(
+                                                    backgroundColor: const Color(0xFF1976D2),
+                                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                                                  ),
                                                   onPressed: () => _mostrarFormularioVehiculo(vehiculo: v),
                                                 ),
                                                 const SizedBox(width: 8),
                                                 ElevatedButton.icon(
-                                                  icon: const Icon(Icons.delete),
-                                                  label: const Text('Eliminar'),
-                                                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                                                  icon: const Icon(Icons.delete, color: Colors.white),
+                                                  label: const Text('Eliminar', style: TextStyle(color: Colors.white)),
+                                                  style: ElevatedButton.styleFrom(
+                                                    backgroundColor: Colors.red.shade400,
+                                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                                                  ),
                                                   onPressed: () => _confirmarEliminarVehiculo(v),
                                                 ),
                                               ],
