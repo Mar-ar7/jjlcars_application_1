@@ -207,20 +207,31 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       if (response.statusCode == 200) {
         final decoded = json.decode(response.body);
         if (decoded['success'] == true && decoded['data'] != null && decoded['data'] is List) {
+          final lista = decoded['data'] as List;
+          final vehiculos = lista.where((item) => item is Map<String, dynamic>).map((item) => Map<String, dynamic>.from(item)).toList();
           setState(() {
-            _vehiculosPorMarca = List<Map<String, dynamic>>.from(decoded['data']);
+            _vehiculosPorMarca = vehiculos;
             _isLoadingVehiculosMarca = false;
           });
         } else {
-          throw Exception('La respuesta de vehículos no es una lista');
+          setState(() {
+            _vehiculosPorMarca = [];
+            _isLoadingVehiculosMarca = false;
+            _vehiculosMarcaError = 'La respuesta de vehículos no es una lista válida.';
+          });
         }
       } else {
-        throw Exception('Error del servidor: ${response.statusCode}');
+        setState(() {
+          _vehiculosPorMarca = [];
+          _isLoadingVehiculosMarca = false;
+          _vehiculosMarcaError = 'Error del servidor: $response.statusCode';
+        });
       }
     } catch (e) {
       setState(() {
-        _vehiculosMarcaError = e.toString();
+        _vehiculosPorMarca = [];
         _isLoadingVehiculosMarca = false;
+        _vehiculosMarcaError = 'Error al cargar vehículos: $e';
       });
     }
   }
