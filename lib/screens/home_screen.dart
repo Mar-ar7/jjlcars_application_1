@@ -264,65 +264,120 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     });
   }
 
-  void _mostrarMenuPerfil(BuildContext context) {
-    showModalBottomSheet(
+  void _mostrarMenuPerfil(BuildContext context) async {
+    await showGeneralDialog(
       context: context,
-      builder: (context) => Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          ListTile(
-            leading: Icon(Icons.image),
-            title: Text('Cambiar imagen'),
-            onTap: () async {
-              Navigator.pop(context);
-              final picker = ImagePicker();
-              final picked = await picker.pickImage(source: ImageSource.gallery);
-              if (picked != null) {
-                await _usuarioService.actualizarPerfil(id: _usuario.id, avatar: File(picked.path));
-                await _refrescarUsuario();
-              }
-            },
-          ),
-          ListTile(
-            leading: Icon(Icons.edit),
-            title: Text('Cambiar nombre'),
-            onTap: () async {
-              Navigator.pop(context);
-              final controller = TextEditingController(text: _usuario.nombre);
-              final ok = await showDialog<bool>(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: Text('Editar nombre'),
-                  content: TextField(controller: controller),
-                  actions: [
-                    TextButton(onPressed: () => Navigator.pop(context, false), child: Text('Cancelar')),
-                    ElevatedButton(onPressed: () => Navigator.pop(context, true), child: Text('Guardar')),
+      barrierDismissible: true,
+      barrierLabel: 'Perfil',
+      transitionDuration: const Duration(milliseconds: 300),
+      pageBuilder: (context, anim1, anim2) {
+        return Align(
+          alignment: Alignment.centerRight,
+          child: FractionallySizedBox(
+            widthFactor: 0.7,
+            child: Material(
+              color: Colors.white,
+              borderRadius: const BorderRadius.horizontal(left: Radius.circular(24)),
+              child: SafeArea(
+                child: Column(
+                  mainAxisSize: MainAxisSize.max,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(24.0),
+                      child: Row(
+                        children: [
+                          CircleAvatar(
+                            radius: 28,
+                            backgroundImage: (_usuario.avatar != null && _usuario.avatar!.isNotEmpty)
+                                ? NetworkImage('http://10.0.2.2/jjlcars_application_1/${_usuario.avatar}')
+                                : null,
+                            child: (_usuario.avatar == null || _usuario.avatar!.isEmpty)
+                                ? Text(_usuario.nombre.isNotEmpty ? _usuario.nombre[0].toUpperCase() : '?', style: TextStyle(fontSize: 28))
+                                : null,
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Text(
+                              _usuario.nombre,
+                              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.close),
+                            onPressed: () => Navigator.pop(context),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Divider(),
+                    ListTile(
+                      leading: const Icon(Icons.image),
+                      title: const Text('Cambiar imagen'),
+                      onTap: () async {
+                        Navigator.pop(context);
+                        final picker = ImagePicker();
+                        final picked = await picker.pickImage(source: ImageSource.gallery);
+                        if (picked != null) {
+                          try {
+                            await _usuarioService.actualizarPerfil(id: _usuario.id, avatar: File(picked.path));
+                            await _refrescarUsuario();
+                          } catch (e) {
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+                            }
+                          }
+                        }
+                      },
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.edit),
+                      title: const Text('Cambiar nombre'),
+                      onTap: () async {
+                        Navigator.pop(context);
+                        final controller = TextEditingController(text: _usuario.nombre);
+                        final ok = await showDialog<bool>(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: const Text('Editar nombre'),
+                            content: TextField(controller: controller),
+                            actions: [
+                              TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancelar')),
+                              ElevatedButton(onPressed: () => Navigator.pop(context, true), child: const Text('Guardar')),
+                            ],
+                          ),
+                        );
+                        if (ok == true && controller.text.isNotEmpty) {
+                          try {
+                            await _usuarioService.actualizarPerfil(id: _usuario.id, nombre: controller.text);
+                            await _refrescarUsuario();
+                          } catch (e) {
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+                            }
+                          }
+                        }
+                      },
+                    ),
+                    const Spacer(),
+                    Padding(
+                      padding: const EdgeInsets.all(24.0),
+                      child: Text('© 2024 JJL Cars', style: TextStyle(color: Colors.grey[400])),
+                    ),
                   ],
                 ),
-              );
-              if (ok == true && controller.text.isNotEmpty) {
-                await _usuarioService.actualizarPerfil(id: _usuario.id, nombre: controller.text);
-                await _refrescarUsuario();
-              }
-            },
+              ),
+            ),
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAvatar() {
-    return GestureDetector(
-      onTap: () => _mostrarMenuPerfil(context),
-      child: CircleAvatar(
-        radius: 22,
-        backgroundImage: (_usuario.avatar != null && _usuario.avatar!.isNotEmpty)
-            ? NetworkImage('http://10.0.2.2/jjlcars_application_1/${_usuario.avatar}')
-            : null,
-        child: (_usuario.avatar == null || _usuario.avatar!.isEmpty)
-            ? Text(_usuario.nombre.isNotEmpty ? _usuario.nombre[0].toUpperCase() : '?')
-            : null,
-      ),
+        );
+      },
+      transitionBuilder: (context, anim1, anim2, child) {
+        return SlideTransition(
+          position: Tween(begin: const Offset(1, 0), end: Offset.zero).animate(anim1),
+          child: child,
+        );
+      },
     );
   }
 
@@ -352,6 +407,21 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildAvatar() {
+    return GestureDetector(
+      onTap: () => _mostrarMenuPerfil(context),
+      child: CircleAvatar(
+        radius: 22,
+        backgroundImage: (_usuario.avatar != null && _usuario.avatar!.isNotEmpty)
+            ? NetworkImage('http://10.0.2.2/jjlcars_application_1/${_usuario.avatar}')
+            : null,
+        child: (_usuario.avatar == null || _usuario.avatar!.isEmpty)
+            ? Text(_usuario.nombre.isNotEmpty ? _usuario.nombre[0].toUpperCase() : '?')
+            : null,
       ),
     );
   }

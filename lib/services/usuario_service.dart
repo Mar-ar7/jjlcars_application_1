@@ -264,6 +264,9 @@ class UsuarioService {
     }
     var response = await request.send();
     var respStr = await response.stream.bytesToString();
+    if (respStr.trim().isEmpty) {
+      throw Exception('No se recibió respuesta del servidor. Verifica el backend.');
+    }
     final data = json.decode(respStr);
     if (data['success'] == true) {
       // Obtener usuario actualizado
