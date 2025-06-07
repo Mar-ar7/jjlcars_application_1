@@ -39,7 +39,8 @@ class ClienteService {
   Future<Cliente> crearCliente(Map<String, String> fields) async {
     final response = await http.post(
       Uri.parse('$baseUrl/crear_cliente.php'),
-      body: fields,
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode(fields),
     );
     final data = json.decode(response.body);
     if (data['success'] == true && data['cliente'] != null) {
@@ -66,7 +67,8 @@ class ClienteService {
   Future<void> eliminarCliente(int id) async {
     final response = await http.post(
       Uri.parse('$baseUrl/eliminar_cliente.php'),
-      body: {'id': id.toString()},
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({'id': id.toString()}),
     );
     final data = json.decode(response.body);
     if (data['success'] != true) {

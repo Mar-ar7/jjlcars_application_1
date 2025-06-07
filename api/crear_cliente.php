@@ -5,7 +5,8 @@ error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
 try {
-    $data = json_decode(file_get_contents('php://input'), true);
+    $input = file_get_contents('php://input');
+    $data = json_decode($input, true);
     
     if (!isset($data['nombre']) || !isset($data['correo'])) {
         http_response_code(400);

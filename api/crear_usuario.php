@@ -13,10 +13,12 @@ error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
 try {
-    $data = json_decode(file_get_contents('php://input'), true);
-    
-    if (!isset($data['Usuario']) || !isset($data['Nombre']) || !isset($data['Password']) || !isset($data['TipoUsuario'])) {
-        throw new Exception('Faltan datos requeridos');
+    $input = file_get_contents('php://input');
+    $data = json_decode($input, true);
+    if (!isset($data['usuario']) || !isset($data['Nombre']) || !isset($data['password']) || !isset($data['TipoUsuario'])) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'error' => 'Faltan datos requeridos']);
+        exit;
     }
     
     $conexion = new PDO(
@@ -28,7 +30,7 @@ try {
     
     // Verificar si el usuario ya existe
     $stmt = $conexion->prepare('SELECT id FROM usuarios WHERE Usuario = ?');
-    $stmt->execute([$data['Usuario']]);
+    $stmt->execute([$data['usuario']]);
     if ($stmt->fetch()) {
         throw new Exception('El nombre de usuario ya existe');
     }
@@ -37,9 +39,9 @@ try {
     $sql = "INSERT INTO usuarios (Usuario, Nombre, Password, TipoUsuario, estado) VALUES (?, ?, ?, ?, 'Disponible')";
     $stmt = $conexion->prepare($sql);
     $stmt->execute([
-        $data['Usuario'],
+        $data['usuario'],
         $data['Nombre'],
-        password_hash($data['Password'], PASSWORD_DEFAULT),
+        password_hash($data['password'], PASSWORD_DEFAULT),
         $data['TipoUsuario']
     ]);
     

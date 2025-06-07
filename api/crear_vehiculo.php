@@ -25,9 +25,9 @@ try {
         throw new Exception('Faltan datos requeridos');
     }
 
-    // Procesar la imagen solo si se recibe
+    // Procesar la imagen solo si se recibe correctamente
     $nombreImagen = 'default.png';
-    if (isset($_FILES['imagen']) && $_FILES['imagen']['error'] === UPLOAD_ERR_OK) {
+    if (isset($_FILES['imagen']) && isset($_FILES['imagen']['error']) && $_FILES['imagen']['error'] === UPLOAD_ERR_OK) {
         $imagen = $_FILES['imagen'];
         $nombreImagen = $imagen['name'];
         $tipoImagen = $imagen['type'];
