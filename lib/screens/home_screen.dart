@@ -206,26 +206,25 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       );
       if (response.statusCode == 200) {
         final decoded = json.decode(response.body);
-        if (decoded['success'] == true && decoded['data'] != null && decoded['data'] is List) {
-          final lista = decoded['data'] as List;
-          final vehiculos = lista.map((item) {
-            if (item is Map<String, dynamic>) {
-              final marca = item['marca']?.toString() ?? '';
-              final cantidadRaw = item['cantidad'];
-              int cantidad = 0;
-              if (cantidadRaw is int) {
-                cantidad = cantidadRaw;
-              } else if (cantidadRaw is String && int.tryParse(cantidadRaw) != null) {
-                cantidad = int.parse(cantidadRaw);
-              }
-              if (marca.isNotEmpty && cantidad > 0) {
-                return {'marca': marca, 'cantidad': cantidad};
-              }
-            }
-            return null;
-          }).where((item) => item != null).cast<Map<String, dynamic>>().toList();
+        final lista = decoded['data'];
+        if (lista is List) {
+          _vehiculosPorMarca = lista
+              .where((item) => item is Map)
+              .map((item) => Map<String, dynamic>.from(item as Map))
+              .where((item) =>
+                  item['marca'] != null &&
+                  item['marca'] is String &&
+                  item['marca'].toString().isNotEmpty &&
+                  item['cantidad'] != null &&
+                  (item['cantidad'] is int || int.tryParse(item['cantidad'].toString()) != null))
+              .map((item) => {
+                    'marca': item['marca'].toString(),
+                    'cantidad': item['cantidad'] is int
+                        ? item['cantidad']
+                        : int.tryParse(item['cantidad'].toString()) ?? 0
+                  })
+              .toList();
           setState(() {
-            _vehiculosPorMarca = vehiculos;
             _isLoadingVehiculosMarca = false;
           });
         } else {
