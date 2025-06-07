@@ -52,10 +52,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   bool _isLoadingVehiculoStats = true;
   String? _vehiculoStatsError;
 
-  List<Map<String, dynamic>> _vehiculosPorMarca = [];
-  bool _isLoadingVehiculosMarca = true;
-  String? _vehiculosMarcaError;
-
   Map<String, Map<String, double>> _citasPorTipoYMes = {};
   bool _isLoadingCitasPorTipo = true;
   String? _citasPorTipoError;
