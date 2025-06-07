@@ -273,7 +273,7 @@ class _CitasScreenState extends State<CitasScreen> {
                           setState(() => isLoading = true);
                           try {
                             final vehiculoIds = vehiculos.map((v) => v.id).toList();
-                            if (vehiculoId != null && !vehiculoIds.contains(vehiculoId)) {
+                            if (vehiculoId == 0 || (vehiculoId != null && !vehiculoIds.contains(vehiculoId))) {
                               vehiculoId = null;
                             }
                             final nuevaCita = Cita(
