@@ -90,7 +90,7 @@ class CustomDrawer extends StatelessWidget {
         color: isLogout
             ? Colors.red
             : isSelected
-                ? AppColors.primary
+                ? Colors.black
                 : Colors.grey[600],
       ),
       title: Text(
@@ -99,7 +99,7 @@ class CustomDrawer extends StatelessWidget {
           color: isLogout
               ? Colors.red
               : isSelected
-                  ? AppColors.primary
+                  ? Colors.black
                   : Colors.grey[800],
           fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
         ),
@@ -114,7 +114,7 @@ class CustomDrawer extends StatelessWidget {
           Navigator.pushNamed(context, route);
         }
       },
-      tileColor: isSelected ? AppColors.primary.withOpacity(0.1) : null,
+      tileColor: isSelected ? Colors.grey[200] : null,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(10),
       ),

@@ -222,19 +222,19 @@ class _EmpleadosScreenState extends State<EmpleadosScreen> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Color(0xFFe3f2fd), // azul muy claro
-            Color(0xFF90caf9), // azul claro
-            Color(0xFFf5f7fa), // blanco-gris
+            Color(0xFFF5F7FA), // gris muy claro
+            Color(0xFFE8EAED), // gris claro
+            Color(0xFFDDE3EC), // gris más oscuro
           ],
         ),
       ),
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
-          title: const Text('Empleados', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1565C0))),
+          title: const Text('Empleados', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
           backgroundColor: Colors.white,
           elevation: 2,
-          iconTheme: const IconThemeData(color: Color(0xFF1565C0)),
+          iconTheme: const IconThemeData(color: Colors.black),
           actions: [
             IconButton(
               icon: const Icon(Icons.refresh),
@@ -266,7 +266,7 @@ class _EmpleadosScreenState extends State<EmpleadosScreen> {
                           controller: _searchController,
                           decoration: InputDecoration(
                             labelText: 'Buscar por nombre',
-                            prefixIcon: const Icon(Icons.search, color: Color(0xFF1565C0)),
+                            prefixIcon: const Icon(Icons.search, color: Colors.black54),
                             border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                           ),
                         ),
@@ -276,7 +276,7 @@ class _EmpleadosScreenState extends State<EmpleadosScreen> {
                         child: Align(
                           alignment: Alignment.centerLeft,
                           child: Text('Mostrando ${usuariosFiltrados.length} de ${_usuarios.length} registros',
-                            style: TextStyle(color: Colors.blueGrey[700], fontWeight: FontWeight.w500),
+                            style: TextStyle(color: Colors.grey[700], fontWeight: FontWeight.w500),
                           ),
                         ),
                       ),
@@ -289,14 +289,14 @@ class _EmpleadosScreenState extends State<EmpleadosScreen> {
                                 itemBuilder: (context, index) {
                                   final usuario = usuariosFiltrados[index];
                                   return Card(
-                                    elevation: 6,
+                                    elevation: 4,
                                     margin: const EdgeInsets.only(bottom: 16),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(20),
-                                      side: BorderSide(color: Colors.blueGrey.shade100, width: 1.5),
+                                      side: BorderSide(color: Colors.grey.shade200, width: 1.2),
                                     ),
                                     color: Colors.white,
-                                    shadowColor: Colors.blueGrey.shade100,
+                                    shadowColor: Colors.grey.shade200,
                                     child: Padding(
                                       padding: const EdgeInsets.all(18),
                                       child: Row(
@@ -304,12 +304,12 @@ class _EmpleadosScreenState extends State<EmpleadosScreen> {
                                         children: [
                                           CircleAvatar(
                                             radius: 28,
-                                            backgroundColor: const Color(0xFF1976D2),
+                                            backgroundColor: Colors.grey[300],
                                             child: Text(
                                               (usuario.nombre.isNotEmpty)
                                                   ? usuario.nombre[0].toUpperCase()
                                                   : '?',
-                                              style: const TextStyle(fontSize: 26, color: Colors.white, fontWeight: FontWeight.bold),
+                                              style: const TextStyle(fontSize: 26, color: Colors.black, fontWeight: FontWeight.bold),
                                             ),
                                           ),
                                           const SizedBox(width: 18),
@@ -319,36 +319,37 @@ class _EmpleadosScreenState extends State<EmpleadosScreen> {
                                               children: [
                                                 Row(
                                                   children: [
-                                                    const Icon(Icons.person, color: Color(0xFF1565C0), size: 22),
+                                                    const Icon(Icons.person, color: Colors.black87, size: 22),
                                                     const SizedBox(width: 6),
-                                                    Text(usuario.nombre, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: Color(0xFF1565C0))),
+                                                    Text(usuario.nombre, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: Colors.black)),
                                                   ],
                                                 ),
                                                 const SizedBox(height: 6),
                                                 Row(
                                                   children: [
-                                                    Icon(Icons.account_circle, color: Colors.blueGrey[400], size: 18),
+                                                    Icon(Icons.account_circle, color: Colors.grey[500], size: 18),
                                                     const SizedBox(width: 4),
-                                                    Text(usuario.usuario, style: const TextStyle(fontSize: 15, color: Colors.blueGrey)),
+                                                    Text(usuario.usuario, style: const TextStyle(fontSize: 15, color: Colors.black87)),
                                                   ],
                                                 ),
                                                 const SizedBox(height: 6),
                                                 Row(
                                                   children: [
-                                                    Icon(Icons.badge, color: Colors.blueGrey[400], size: 18),
+                                                    Icon(Icons.badge, color: Colors.grey[500], size: 18),
                                                     const SizedBox(width: 4),
-                                                    Text(usuario.tipoUsuario, style: const TextStyle(fontSize: 15, color: Colors.blueGrey)),
+                                                    Text(usuario.tipoUsuario, style: const TextStyle(fontSize: 15, color: Colors.black87)),
                                                   ],
                                                 ),
                                                 const SizedBox(height: 10),
                                                 Row(
                                                   children: [
                                                     ElevatedButton.icon(
-                                                      icon: const Icon(Icons.edit, color: Colors.white),
-                                                      label: const Text('Editar', style: TextStyle(color: Colors.white)),
+                                                      icon: const Icon(Icons.edit, color: Colors.black87),
+                                                      label: const Text('Editar', style: TextStyle(color: Colors.black87)),
                                                       style: ElevatedButton.styleFrom(
-                                                        backgroundColor: const Color(0xFF1976D2),
+                                                        backgroundColor: Colors.grey[200],
                                                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                                        elevation: 0,
                                                         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
                                                       ),
                                                       onPressed: () => _mostrarFormularioUsuario(usuario),
@@ -358,8 +359,9 @@ class _EmpleadosScreenState extends State<EmpleadosScreen> {
                                                       icon: const Icon(Icons.delete, color: Colors.white),
                                                       label: const Text('Eliminar', style: TextStyle(color: Colors.white)),
                                                       style: ElevatedButton.styleFrom(
-                                                        backgroundColor: Colors.red.shade400,
+                                                        backgroundColor: Colors.red.shade300,
                                                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                                        elevation: 0,
                                                         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
                                                       ),
                                                       onPressed: () => _confirmarEliminar(usuario),
@@ -380,8 +382,8 @@ class _EmpleadosScreenState extends State<EmpleadosScreen> {
                   ),
         floatingActionButton: FloatingActionButton(
           onPressed: () => _mostrarFormularioUsuario(),
-          backgroundColor: const Color(0xFF1976D2),
-          child: const Icon(Icons.add, color: Colors.white),
+          backgroundColor: Colors.grey[400],
+          child: const Icon(Icons.add, color: Colors.black),
         ),
       ),
     );

@@ -281,10 +281,10 @@ class _VehiculosScreenState extends State<VehiculosScreen> {
                                   margin: const EdgeInsets.only(bottom: 16),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(20),
-                                    side: BorderSide(color: Colors.blueGrey.shade100, width: 1.5),
+                                    side: BorderSide(color: Colors.grey.shade200, width: 1.5),
                                   ),
                                   color: Colors.white,
-                                  shadowColor: Colors.blueGrey.shade100,
+                                  shadowColor: Colors.grey.shade200,
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
@@ -298,20 +298,20 @@ class _VehiculosScreenState extends State<VehiculosScreen> {
                                                 fit: BoxFit.cover,
                                                 errorBuilder: (context, error, stackTrace) => Container(
                                                   height: 180,
-                                                  color: Colors.blueGrey[50],
-                                                  child: const Icon(Icons.directions_car, size: 64, color: Colors.blueGrey),
+                                                  color: Colors.grey[200],
+                                                  child: const Icon(Icons.directions_car, size: 64, color: Colors.grey),
                                                 ),
                                               )
                                             : Container(
                                                 height: 180,
-                                                color: Colors.blueGrey[50],
-                                                child: const Icon(Icons.directions_car, size: 64, color: Colors.blueGrey),
+                                                color: Colors.grey[200],
+                                                child: const Icon(Icons.directions_car, size: 64, color: Colors.grey),
                                               ),
                                       ),
                                       Container(
                                         padding: const EdgeInsets.all(18),
                                         decoration: BoxDecoration(
-                                          color: Colors.blueGrey[50],
+                                          color: Colors.grey[200],
                                           borderRadius: const BorderRadius.vertical(bottom: Radius.circular(20)),
                                         ),
                                         child: Column(
@@ -322,25 +322,25 @@ class _VehiculosScreenState extends State<VehiculosScreen> {
                                               children: [
                                                 Text(
                                                   '${v.marca} ${v.modelo}',
-                                                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF1565C0)),
+                                                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black),
                                                 ),
                                                 Text(
                                                   '\$24${v.precio.toStringAsFixed(2)}',
-                                                  style: const TextStyle(fontSize: 20, color: Color(0xFF1565C0), fontWeight: FontWeight.bold),
+                                                  style: const TextStyle(fontSize: 20, color: Colors.black, fontWeight: FontWeight.bold),
                                                 ),
                                               ],
                                             ),
                                             const SizedBox(height: 8),
                                             Text(
                                               v.descripcion,
-                                              style: const TextStyle(fontSize: 15, color: Colors.blueGrey),
+                                              style: const TextStyle(fontSize: 15, color: Colors.black),
                                             ),
                                             const SizedBox(height: 8),
                                             Row(
                                               children: [
-                                                const Icon(Icons.inventory, size: 18, color: Color(0xFF1565C0)),
+                                                const Icon(Icons.inventory, size: 18, color: Colors.black),
                                                 const SizedBox(width: 4),
-                                                Text('Inventario: ${v.inventario}', style: const TextStyle(fontSize: 14, color: Color(0xFF1565C0))),
+                                                Text('Inventario: ${v.inventario}', style: const TextStyle(fontSize: 14, color: Colors.black)),
                                               ],
                                             ),
                                             const SizedBox(height: 12),
@@ -350,7 +350,7 @@ class _VehiculosScreenState extends State<VehiculosScreen> {
                                                   icon: const Icon(Icons.edit, color: Colors.white),
                                                   label: const Text('Editar', style: TextStyle(color: Colors.white)),
                                                   style: ElevatedButton.styleFrom(
-                                                    backgroundColor: const Color(0xFF1976D2),
+                                                    backgroundColor: Colors.grey.shade300,
                                                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                                                     padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
                                                   ),
