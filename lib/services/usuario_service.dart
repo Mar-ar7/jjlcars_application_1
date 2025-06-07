@@ -3,6 +3,7 @@ import 'dart:developer' as developer;
 import 'package:http/http.dart' as http;
 import '../models/usuario.dart';
 import 'dart:async';
+import 'dart:io';
 
 class UsuarioService {
   // URL base para XAMPP incluyendo la carpeta api
@@ -246,6 +247,45 @@ class UsuarioService {
     } catch (e) {
       developer.log('Error al eliminar usuario: $e');
       rethrow;
+    }
+  }
+
+  Future<Usuario> actualizarPerfil({
+    required int id,
+    String? nombre,
+    File? avatar,
+  }) async {
+    var uri = Uri.parse('$baseUrl/actualizar_perfil.php');
+    var request = http.MultipartRequest('POST', uri);
+    request.fields['id'] = id.toString();
+    if (nombre != null) request.fields['nombre'] = nombre;
+    if (avatar != null) {
+      request.files.add(await http.MultipartFile.fromPath('avatar', avatar.path));
+    }
+    var response = await request.send();
+    var respStr = await response.stream.bytesToString();
+    final data = json.decode(respStr);
+    if (data['success'] == true) {
+      // Obtener usuario actualizado
+      return await obtenerUsuario(id);
+    } else {
+      throw Exception(data['error'] ?? 'Error al actualizar perfil');
+    }
+  }
+
+  Future<Usuario> obtenerUsuario(int id) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/obtener_usuario.php?id=$id'),
+      headers: {'Accept': 'application/json'},
+    );
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      if (data['success'] == true && data['usuario'] != null) {
+        return Usuario.fromJson(data['usuario']);
+      }
+      throw Exception(data['error'] ?? 'Usuario no encontrado');
+    } else {
+      throw Exception('Error HTTP: ${response.statusCode}');
     }
   }
 } 

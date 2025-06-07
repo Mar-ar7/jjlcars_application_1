@@ -9,6 +9,9 @@ import 'dart:io';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import '../services/api_service.dart';
 import 'package:intl/intl.dart';
+import 'package:image_picker/image_picker.dart';
+import '../models/usuario.dart';
+import '../services/usuario_service.dart';
 
 // Define a simple data class for the chart (Ensuring it's at the top level)
 class CitaData {
@@ -56,11 +59,14 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   String? _citasPorTipoError;
 
   final ApiService _apiService = ApiService();
+  late Usuario _usuario;
+  final UsuarioService _usuarioService = UsuarioService();
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _usuario = Usuario.fromJson(widget.userData);
     _loadAllStats();
     _loadVehiculosPorMarca();
     _loadCitasPorTipoYMes();
@@ -251,20 +257,85 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     }
   }
 
+  Future<void> _refrescarUsuario() async {
+    final actualizado = await _usuarioService.obtenerUsuario(_usuario.id);
+    setState(() {
+      _usuario = actualizado;
+    });
+  }
+
+  void _mostrarMenuPerfil(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            leading: Icon(Icons.image),
+            title: Text('Cambiar imagen'),
+            onTap: () async {
+              Navigator.pop(context);
+              final picker = ImagePicker();
+              final picked = await picker.pickImage(source: ImageSource.gallery);
+              if (picked != null) {
+                await _usuarioService.actualizarPerfil(id: _usuario.id, avatar: File(picked.path));
+                await _refrescarUsuario();
+              }
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.edit),
+            title: Text('Cambiar nombre'),
+            onTap: () async {
+              Navigator.pop(context);
+              final controller = TextEditingController(text: _usuario.nombre);
+              final ok = await showDialog<bool>(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: Text('Editar nombre'),
+                  content: TextField(controller: controller),
+                  actions: [
+                    TextButton(onPressed: () => Navigator.pop(context, false), child: Text('Cancelar')),
+                    ElevatedButton(onPressed: () => Navigator.pop(context, true), child: Text('Guardar')),
+                  ],
+                ),
+              );
+              if (ok == true && controller.text.isNotEmpty) {
+                await _usuarioService.actualizarPerfil(id: _usuario.id, nombre: controller.text);
+                await _refrescarUsuario();
+              }
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAvatar() {
+    return GestureDetector(
+      onTap: () => _mostrarMenuPerfil(context),
+      child: CircleAvatar(
+        radius: 22,
+        backgroundImage: (_usuario.avatar != null && _usuario.avatar!.isNotEmpty)
+            ? NetworkImage('http://10.0.2.2/jjlcars_application_1/${_usuario.avatar}')
+            : null,
+        child: (_usuario.avatar == null || _usuario.avatar!.isEmpty)
+            ? Text(_usuario.nombre.isNotEmpty ? _usuario.nombre[0].toUpperCase() : '?')
+            : null,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('JJL Cars'),
         actions: [
-          CircleAvatar(
-            backgroundColor: AppColors.background,
-            child: Icon(
-              Icons.person_outline,
-              color: AppColors.primary,
-            ),
+          Padding(
+            padding: const EdgeInsets.only(right: 16),
+            child: _buildAvatar(),
           ),
-          const SizedBox(width: 16),
         ],
       ),
       drawer: const CustomDrawer(),
