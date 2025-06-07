@@ -10,10 +10,11 @@ if (!$id) {
     exit;
 }
 
-$sql = "SELECT id, Usuario, Nombre, TipoUsuario, estado, avatar FROM usuarios WHERE id = $id";
-$result = $conn->query($sql);
+$sql = "SELECT id, Usuario, Nombre, TipoUsuario, estado, avatar FROM usuarios WHERE id = ?";
+$stmt = $conn->prepare($sql);
+$stmt->execute([$id]);
 
-if ($result && $row = $result->fetch_assoc()) {
+if ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
     echo json_encode(['success' => true, 'usuario' => $row]);
 } else {
     echo json_encode(['success' => false, 'error' => 'Usuario no encontrado']);
