@@ -1,6 +1,9 @@
 <?php
 require_once 'conexion.php';
 
+// Agregar conexión a la base de datos
+$conn = obtenerConexion();
+
 $id = $_GET['id'] ?? null;
 if (!$id) {
     echo json_encode(['success' => false, 'error' => 'ID requerido']);

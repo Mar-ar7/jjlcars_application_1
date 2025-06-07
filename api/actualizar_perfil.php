@@ -70,7 +70,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $sql = 'UPDATE usuarios SET ' . implode(', ', $campos) . ' WHERE id = ?';
     $stmt = $conexion->prepare($sql);
     if ($stmt->execute($params)) {
-        echo json_encode(['success' => true, 'avatar' => $avatar ? $avatar : '', 'nombre' => $nombre ?? '']);
+        // Obtener usuario actualizado
+        $stmtUser = $conexion->prepare('SELECT id, Usuario, Nombre, TipoUsuario, estado, avatar FROM usuarios WHERE id = ?');
+        $stmtUser->execute([$id]);
+        $usuario = $stmtUser->fetch(PDO::FETCH_ASSOC);
+        echo json_encode(['success' => true, 'usuario' => $usuario]);
     } else {
         echo json_encode(['success' => false, 'error' => 'Error al actualizar usuario']);
     }
