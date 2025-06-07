@@ -505,33 +505,71 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   Widget _buildWelcomeCard() {
-    return Card(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
+    return Container(
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xFFF5F7FA),
+            Color(0xFFE8EAED),
+            Color(0xFFDDE3EC),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(28),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.18),
+            blurRadius: 24,
+            offset: const Offset(0, 8),
+          ),
+        ],
       ),
-      elevation: 6,
-      color: Colors.white,
-      shadowColor: Colors.blueGrey.shade100,
       child: Padding(
-        padding: const EdgeInsets.all(28.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        padding: const EdgeInsets.symmetric(horizontal: 28.0, vertical: 32.0),
+        child: Row(
           children: [
-            Text(
-              '¡Bienvenido, ${widget.userData['Nombre']}!',
-              style: const TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF1565C0),
+            CircleAvatar(
+              radius: 38,
+              backgroundColor: Colors.grey[300],
+              child: Text(
+                widget.userData['Nombre'] != null && widget.userData['Nombre'].isNotEmpty
+                  ? widget.userData['Nombre'][0].toUpperCase()
+                  : '?',
+                style: const TextStyle(fontSize: 36, color: Colors.black, fontWeight: FontWeight.bold),
               ),
             ),
-            const SizedBox(height: 8),
-            Text(
-              'Tipo de usuario: ${widget.userData['TipoUsuario']}',
-              style: TextStyle(
-                fontSize: 18,
-                color: Colors.blueGrey[700],
-                fontWeight: FontWeight.w500,
+            const SizedBox(width: 24),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '¡Bienvenido,',
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black,
+                    ),
+                  ),
+                  Text(
+                    widget.userData['Nombre'] ?? '',
+                    style: const TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Tipo de usuario: ${widget.userData['TipoUsuario']}',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      color: Colors.black87,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
