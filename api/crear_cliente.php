@@ -28,8 +28,8 @@ try {
     $stmt->execute([
         ':nombre' => $data['nombre'],
         ':correo' => $data['correo'],
-        ':telefono' => $data['telefono'],
-        ':direccion' => $data['direccion'],
+        ':telefono' => $data['telefono'] ?? '',
+        ':direccion' => $data['direccion'] ?? '',
         ':estado' => $data['estado'] ?? 'Activo'
     ]);
 

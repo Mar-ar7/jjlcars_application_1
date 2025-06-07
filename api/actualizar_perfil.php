@@ -31,22 +31,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    // Construir consulta dinámica
-    $campos = [];
-    if ($nombre) $campos[] = "Nombre = '" . $conn->real_escape_string($nombre) . "'";
-    if ($avatar) $campos[] = "avatar = '" . $conn->real_escape_string($avatar) . "'";
-
-    if (empty($campos)) {
-        // No hay nada que actualizar, pero responde con éxito y los datos actuales
-        echo json_encode(['success' => true, 'avatar' => $avatar, 'nombre' => $nombre]);
+    // Conexión PDO
+    $conexion = null;
+    try {
+        $conexion = new PDO(
+            'mysql:host=localhost;dbname=jjlcars;charset=utf8mb4',
+            'root',
+            '',
+            array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION)
+        );
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'error' => 'Error de conexión a la base de datos']);
         exit;
     }
 
-    $sql = "UPDATE usuarios SET " . implode(', ', $campos) . " WHERE id = $id";
-    if ($conn->query($sql)) {
+    // Construir consulta dinámica
+    $campos = [];
+    $params = [];
+    if ($nombre) {
+        $campos[] = 'Nombre = ?';
+        $params[] = $nombre;
+    }
+    if ($avatar) {
+        $campos[] = 'avatar = ?';
+        $params[] = $avatar;
+    }
+    if (empty($campos)) {
+        echo json_encode(['success' => true, 'avatar' => $avatar, 'nombre' => $nombre]);
+        exit;
+    }
+    $params[] = $id;
+    $sql = 'UPDATE usuarios SET ' . implode(', ', $campos) . ' WHERE id = ?';
+    $stmt = $conexion->prepare($sql);
+    if ($stmt->execute($params)) {
         echo json_encode(['success' => true, 'avatar' => $avatar, 'nombre' => $nombre]);
     } else {
-        echo json_encode(['success' => false, 'error' => $conn->error]);
+        echo json_encode(['success' => false, 'error' => 'Error al actualizar usuario']);
     }
+    exit;
 }
 ?> 

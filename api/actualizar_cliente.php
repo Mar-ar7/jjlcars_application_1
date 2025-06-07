@@ -34,9 +34,9 @@ try {
         ':id' => $data['id'],
         ':nombre' => $data['nombre'],
         ':correo' => $data['correo'],
-        ':telefono' => $data['telefono'],
-        ':direccion' => $data['direccion'],
-        ':estado' => $data['estado']
+        ':telefono' => $data['telefono'] ?? '',
+        ':direccion' => $data['direccion'] ?? '',
+        ':estado' => $data['estado'] ?? 'Activo'
     ]);
 
     $stmt = $conexion->prepare("SELECT * FROM clientes WHERE id = ?");

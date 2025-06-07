@@ -12,13 +12,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
+$input = file_get_contents('php://input');
+$data = json_decode($input, true);
+if (!isset($data['id'])) {
+    http_response_code(400);
+    echo json_encode(['success' => false, 'error' => 'ID de usuario requerido']);
+    exit;
+}
+
 try {
-    $data = json_decode(file_get_contents('php://input'), true);
-    
-    if (!isset($data['id'])) {
-        throw new Exception('ID de usuario requerido');
-    }
-    
     $conexion = new PDO(
         'mysql:host=localhost;dbname=jjlcars;charset=utf8mb4',
         'root',

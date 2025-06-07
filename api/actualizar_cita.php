@@ -6,25 +6,17 @@ ini_set('display_errors', 1);
 
 require_once 'conexion.php';
 
+$input = file_get_contents('php://input');
+$data = json_decode($input, true);
+if (empty($data['id'])) {
+    http_response_code(400);
+    echo json_encode(['success' => false, 'error' => 'ID de cita requerido']);
+    exit;
+}
+
 try {
     $conn = obtenerConexion();
-    $data = json_decode(file_get_contents('php://input'), true);
-    
-    if (empty($data['id'])) {
-        throw new Exception('ID de cita requerido');
-    }
-
-    $sql = "UPDATE citas SET
-                tipoCita = :tipoCita,
-                tipoCompra = :tipoCompra,
-                precio = :precio,
-                nombre = :nombre,
-                correo = :correo,
-                fecha = :fecha,
-                hora = :hora,
-                status = :status,
-                vehiculo_id = :vehiculo_id
-            WHERE id = :id";
+    $sql = "UPDATE citas SET tipoCita = :tipoCita, tipoCompra = :tipoCompra, precio = :precio, nombre = :nombre, correo = :correo, fecha = :fecha, hora = :hora, status = :status, vehiculo_id = :vehiculo_id WHERE id = :id";
     $stmt = $conn->prepare($sql);
     $stmt->execute([
         ':tipoCita' => $data['tipoCita'],
@@ -38,10 +30,9 @@ try {
         ':vehiculo_id' => $data['vehiculo_id'],
         ':id' => $data['id']
     ]);
-
     echo json_encode(['success' => true, 'message' => 'Cita actualizada correctamente']);
 } catch (Exception $e) {
-    http_response_code(400);
+    http_response_code(500);
     echo json_encode(['success' => false, 'error' => $e->getMessage()]);
 }
 ?>
